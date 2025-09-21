@@ -59,11 +59,11 @@ async def startup_event():
 
     try:
         # Initialize Coral client
-        coral_client = CoralClient()
-        print(f"Connected to Coral server: {coral_client.server_url}")
+        coral_client = CoralClient(settings.CORAL_SERVER_URL, settings.CORAL_API_KEY)
+        print(f"Connected to Coral server: {settings.CORAL_SERVER_URL}")
 
         # Register all agents
-        agent_ids = ensure_agents_registered(coral_client)
+        agent_ids = await ensure_agents_registered(coral_client)
         print(f"Registered {len(agent_ids)} agents with Coral")
 
     except ValueError as e:
@@ -119,7 +119,7 @@ async def list_agents():
         }
 
     try:
-        agents = coral_client.list_agents()
+        agents = await coral_client.list_agents()
         return {"agents": agents, "status": "connected", "count": len(agents)}
     except Exception as e:
         return {

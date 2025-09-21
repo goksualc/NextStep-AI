@@ -1,144 +1,48 @@
-"""
-Coral client for agent registration and invocation.
-"""
-
-from typing import Any
-
-from .settings import get_settings
+import httpx
 
 
 class CoralClient:
-    """Client for interacting with Coral distributed computing platform."""
+    def __init__(self, base_url: str, api_key: str):
+        self.base_url = base_url.rstrip("/")
+        self.headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
 
-    def __init__(self):
-        """Initialize Coral client with environment configuration."""
-        settings = get_settings()
-        self.server_url = settings.CORAL_SERVER_URL
-        self.api_key = settings.CORAL_API_KEY
-
-        if not self.api_key:
-            raise ValueError("CORAL_API_KEY environment variable is required")
-
-    def register_agent(
+    async def register_agent(
         self,
         name: str,
         description: str,
-        schema: dict[str, Any],
+        schema: dict,
         endpoint: str,
-        pricing: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        """
-        Register an agent with Coral platform.
-
-        Args:
-            name: Agent name (must be unique)
-            description: Human-readable description of agent functionality
-            schema: JSON schema defining input/output format
-            endpoint: API endpoint where agent can be invoked
-            pricing: Optional pricing configuration
-
-        Returns:
-            Dict containing agent registration details including agent_id
-
-        Raises:
-            Exception: If registration fails
-        """
-        # TODO: call Coral SDK/REST
-        # For now, return a safe stub with generated agent_id
-        agent_id = f"agent_{name}_{hash(name + description) % 10000}"
-
-        return {
-            "agent_id": agent_id,
+        pricing: dict | None = None,
+    ) -> dict:
+        payload = {
             "name": name,
             "description": description,
             "schema": schema,
             "endpoint": endpoint,
             "pricing": pricing or {},
-            "status": "registered",
-            "created_at": "2024-01-01T00:00:00Z",
         }
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.post(
+                f"{self.base_url}/v1/agents", headers=self.headers, json=payload
+            )
+            r.raise_for_status()
+            return r.json()
 
-    def invoke_agent(self, agent_id: str, payload: dict[str, Any]) -> dict[str, Any]:
-        """
-        Invoke an agent with the given payload.
+    async def list_agents(self) -> list[dict]:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.get(f"{self.base_url}/v1/agents", headers=self.headers)
+            r.raise_for_status()
+            return r.json().get("agents", [])
 
-        Args:
-            agent_id: Unique identifier of the agent to invoke
-            payload: Input data for the agent
-
-        Returns:
-            Dict containing agent response and metadata
-
-        Raises:
-            Exception: If agent invocation fails
-        """
-        # TODO: call Coral SDK/REST
-        # For now, return a safe stub response
-        return {
-            "agent_id": agent_id,
-            "status": "completed",
-            "result": {
-                "message": f"Agent {agent_id} processed request successfully",
-                "data": payload,
-                "processing_time_ms": 150,
-            },
-            "metadata": {
-                "invocation_id": f"inv_{hash(str(payload)) % 100000}",
-                "timestamp": "2024-01-01T00:00:00Z",
-            },
-        }
-
-    def list_agents(self) -> list[dict[str, Any]]:
-        """
-        List all registered agents.
-
-        Returns:
-            List of agent metadata dictionaries
-
-        Raises:
-            Exception: If listing fails
-        """
-        # TODO: call Coral SDK/REST
-        # For now, return a safe stub list
-        return [
-            {
-                "agent_id": "agent_cv_analyzer_1234",
-                "name": "cv_analyzer",
-                "description": "Analyzes CVs and extracts structured information",
-                "status": "active",
-                "endpoint": "/v1/analyze",
-                "created_at": "2024-01-01T00:00:00Z",
-            },
-            {
-                "agent_id": "agent_job_scout_5678",
-                "name": "job_scout",
-                "description": "Discovers and scouts job opportunities",
-                "status": "active",
-                "endpoint": "/v1/scout",
-                "created_at": "2024-01-01T00:00:00Z",
-            },
-            {
-                "agent_id": "agent_matcher_9012",
-                "name": "matcher",
-                "description": "Matches user profiles with job opportunities",
-                "status": "active",
-                "endpoint": "/v1/match",
-                "created_at": "2024-01-01T00:00:00Z",
-            },
-            {
-                "agent_id": "agent_app_writer_3456",
-                "name": "app_writer",
-                "description": "Generates personalized application materials",
-                "status": "active",
-                "endpoint": "/v1/write",
-                "created_at": "2024-01-01T00:00:00Z",
-            },
-            {
-                "agent_id": "agent_coach_7890",
-                "name": "coach",
-                "description": "Provides career coaching and interview preparation",
-                "status": "active",
-                "endpoint": "/v1/coach",
-                "created_at": "2024-01-01T00:00:00Z",
-            },
-        ]
+    async def invoke_agent(self, agent_id: str, payload: dict) -> dict:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            r = await client.post(
+                f"{self.base_url}/v1/agents/{agent_id}/invoke",
+                headers=self.headers,
+                json=payload,
+            )
+            r.raise_for_status()
+            return r.json()

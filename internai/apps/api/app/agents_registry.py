@@ -240,7 +240,7 @@ AGENT_METADATA = {
 }
 
 
-def ensure_agents_registered(coral: CoralClient) -> dict[str, str]:
+async def ensure_agents_registered(coral: CoralClient) -> dict[str, str]:
     """
     Ensure all agents are registered with Coral platform.
 
@@ -276,7 +276,7 @@ def ensure_agents_registered(coral: CoralClient) -> dict[str, str]:
                     "output": metadata["output_schema"],
                 }
 
-                result = coral.register_agent(
+                result = await coral.register_agent(
                     name=metadata["name"],
                     description=metadata["description"],
                     schema=combined_schema,
