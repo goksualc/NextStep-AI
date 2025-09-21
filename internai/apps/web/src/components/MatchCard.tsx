@@ -138,7 +138,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 
           {/* Actions */}
           <div className="flex space-x-3 pt-2">
-            <Button 
+            <Button
               onClick={handleWriteCoverLetter}
               className="flex-1"
               disabled={isGenerating}
@@ -152,7 +152,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                 'Write Cover Letter'
               )}
             </Button>
-            <Button 
+            <Button
               variant="outline"
               className="flex-1"
             >
@@ -182,20 +182,20 @@ export const MatchCard: React.FC<MatchCardProps> = ({
               {coverLetter}
             </pre>
           </div>
-          
+
           <div className="flex space-x-3">
             <Button onClick={handleCopyCoverLetter} className="flex-1">
               📋 Copy to Clipboard
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setIsModalOpen(false)}
               className="flex-1"
             >
               Close
             </Button>
           </div>
-          
+
           <div className="text-xs text-gray-500">
             <p><strong>Note:</strong> This is an AI-generated draft. Please review and customize it before sending.</p>
           </div>

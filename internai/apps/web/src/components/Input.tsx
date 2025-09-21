@@ -14,11 +14,11 @@ export const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   const inputClasses = `w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200 ${
-    error 
-      ? 'border-red-300 focus:ring-red-500' 
+    error
+      ? 'border-red-300 focus:ring-red-500'
       : 'border-gray-200'
   } ${className}`;
-  
+
   return (
     <div className="w-full">
       {label && (

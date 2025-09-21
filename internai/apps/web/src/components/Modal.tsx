@@ -28,11 +28,11 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
           onClick={onClose}
         />
-        
+
         {/* Modal */}
         <div className={`relative bg-white rounded-2xl shadow-soft-lg w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden`}>
           {/* Header */}
@@ -49,7 +49,7 @@ export const Modal: React.FC<ModalProps> = ({
               </svg>
             </button>
           </div>
-          
+
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
             {children}

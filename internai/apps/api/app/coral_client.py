@@ -2,13 +2,9 @@
 Coral client for agent registration and invocation.
 """
 
-import os
 from typing import Any
 
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
+from .settings import get_settings
 
 
 class CoralClient:
@@ -16,8 +12,9 @@ class CoralClient:
 
     def __init__(self):
         """Initialize Coral client with environment configuration."""
-        self.server_url = os.getenv("CORAL_SERVER_URL", "http://localhost:8080")
-        self.api_key = os.getenv("CORAL_API_KEY")
+        settings = get_settings()
+        self.server_url = settings.CORAL_SERVER_URL
+        self.api_key = settings.CORAL_API_KEY
 
         if not self.api_key:
             raise ValueError("CORAL_API_KEY environment variable is required")

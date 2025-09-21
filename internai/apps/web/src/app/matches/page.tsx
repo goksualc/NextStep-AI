@@ -62,7 +62,7 @@ export default function Matches() {
             AI-powered job matches tailored to your profile
           </p>
         </div>
-        <Button 
+        <Button
           onClick={handleLoadSampleJobs}
           disabled={isLoading || !profile.skills || profile.skills.length === 0}
         >
@@ -122,8 +122,8 @@ export default function Matches() {
             {/* Content */}
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-gray-900">
-                {!profile.skills || profile.skills.length === 0 
-                  ? "Analyze your profile first" 
+                {!profile.skills || profile.skills.length === 0
+                  ? "Analyze your profile first"
                   : "No matches yet"
                 }
               </h3>
@@ -142,8 +142,8 @@ export default function Matches() {
                   📄 Go to Dashboard
                 </Button>
               ) : (
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="w-full"
                   onClick={handleLoadSampleJobs}
                   disabled={isLoading}
@@ -169,7 +169,7 @@ export default function Matches() {
           <h3 className="text-xl font-semibold text-gray-900">
             How Our Matching Works
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center space-y-3">
               <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto">

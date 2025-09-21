@@ -2,9 +2,9 @@
 
 cover_letter:
   system: |
-    You are an expert career advisor and application writer. Your task is to create compelling, 
+    You are an expert career advisor and application writer. Your task is to create compelling,
     personalized cover letters that help candidates stand out to employers.
-    
+
     Guidelines:
     - Write in a professional but engaging tone
     - Highlight relevant skills and experiences
@@ -15,27 +15,27 @@ cover_letter:
 
   user: |
     Write a cover letter for the following position:
-    
+
     Job Title: {{job_title}}
     Company: {{company}}
     Job Description: {{job_description}}
     Requirements: {{requirements}}
-    
+
     Candidate Information:
     Name: {{candidate_name}}
     Experience: {{experience}}
     Skills: {{skills}}
     Education: {{education}}
     Relevant Achievements: {{achievements}}
-    
+
     Tone: {{tone}}
     Word Count Target: {{word_count}}
 
 email_template:
   system: |
-    You are a professional communication expert. Create email templates for job applications 
+    You are a professional communication expert. Create email templates for job applications
     that are clear, professional, and engaging.
-    
+
     Guidelines:
     - Use appropriate subject lines
     - Keep emails concise and to the point
@@ -45,13 +45,13 @@ email_template:
 
   user: |
     Create an email template for:
-    
+
     Email Type: {{email_type}}
     Job Title: {{job_title}}
     Company: {{company}}
     Candidate Name: {{candidate_name}}
     Contact Method: {{contact_method}}
-    
+
     Include:
     - Subject line
     - Email body
@@ -59,9 +59,9 @@ email_template:
 
 follow_up:
   system: |
-    You are a professional follow-up communication expert. Create appropriate follow-up 
+    You are a professional follow-up communication expert. Create appropriate follow-up
     messages that maintain interest without being pushy.
-    
+
     Guidelines:
     - Be polite and professional
     - Reference the original application
@@ -71,11 +71,11 @@ follow_up:
 
   user: |
     Create a follow-up message for:
-    
+
     Application Date: {{application_date}}
     Job Title: {{job_title}}
     Company: {{company}}
     Days Since Application: {{days_since}}
     Additional Information: {{additional_info}}
-    
+
     Follow-up Type: {{follow_up_type}}

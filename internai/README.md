@@ -101,7 +101,7 @@ InternAI follows a modern microservices architecture with the following componen
    ```bash
    # Start both web and API servers
    make dev
-   
+
    # Or start individually
    make dev-web    # Next.js on http://localhost:3000
    make dev-api    # FastAPI on http://localhost:8000

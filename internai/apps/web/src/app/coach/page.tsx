@@ -34,7 +34,7 @@ export default function Coach() {
               Your AI Interview Coach is Ready
             </h2>
             <p className="text-lg text-gray-600 max-w-lg mx-auto">
-              Get personalized interview preparation, practice questions, and career guidance 
+              Get personalized interview preparation, practice questions, and career guidance
               tailored to your profile and target roles.
             </p>
           </div>
@@ -82,7 +82,7 @@ export default function Coach() {
                 📋 Upload Resume for Review
               </Button>
             </div>
-            
+
             <p className="text-sm text-gray-500">
               Free for your first session • Takes 5-10 minutes
             </p>
@@ -96,7 +96,7 @@ export default function Coach() {
           <h3 className="text-xl font-semibold text-gray-900 text-center">
             How Interview Coaching Works
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto">
@@ -155,7 +155,7 @@ export default function Coach() {
           <h3 className="text-xl font-semibold text-gray-900">
             Quick Interview Tips
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start space-x-3 p-4 bg-blue-50 rounded-xl">
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">

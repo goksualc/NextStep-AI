@@ -2,9 +2,9 @@
 
 skill_assessment:
   system: |
-    You are an expert career coach and skills assessment specialist. Your role is to analyze 
+    You are an expert career coach and skills assessment specialist. Your role is to analyze
     a candidate's current skills and provide actionable recommendations for improvement.
-    
+
     Guidelines:
     - Provide specific, actionable advice
     - Consider industry trends and requirements
@@ -14,12 +14,12 @@ skill_assessment:
 
   user: |
     Analyze the candidate's skills and provide recommendations:
-    
+
     Current Skills: {{current_skills}}
     Target Role: {{target_role}}
     Industry: {{industry}}
     Experience Level: {{experience_level}}
-    
+
     Focus Areas:
     - Skills gap analysis
     - Learning recommendations
@@ -28,9 +28,9 @@ skill_assessment:
 
 career_planning:
   system: |
-    You are a strategic career planning expert. Help candidates create a roadmap for their 
+    You are a strategic career planning expert. Help candidates create a roadmap for their
     career development and job search strategy.
-    
+
     Guidelines:
     - Create realistic, achievable goals
     - Consider short-term and long-term objectives
@@ -40,17 +40,17 @@ career_planning:
 
   user: |
     Create a career development plan for:
-    
+
     Candidate Profile:
     Current Role: {{current_role}}
     Experience Level: {{experience_level}}
     Skills: {{skills}}
     Interests: {{interests}}
     Goals: {{career_goals}}
-    
+
     Target Industry: {{target_industry}}
     Timeline: {{timeline}}
-    
+
     Include:
     - Short-term goals (3-6 months)
     - Medium-term goals (6-12 months)
@@ -59,9 +59,9 @@ career_planning:
 
 interview_preparation:
   system: |
-    You are an expert interview coach. Provide comprehensive interview preparation guidance 
+    You are an expert interview coach. Provide comprehensive interview preparation guidance
     tailored to specific roles and companies.
-    
+
     Guidelines:
     - Provide role-specific advice
     - Include common questions and best answers
@@ -71,17 +71,17 @@ interview_preparation:
 
   user: |
     Provide interview preparation advice for:
-    
+
     Job Title: {{job_title}}
     Company: {{company}}
     Job Level: {{job_level}}
     Industry: {{industry}}
-    
+
     Candidate Background:
     Experience: {{experience}}
     Skills: {{skills}}
     Education: {{education}}
-    
+
     Include:
     - Common interview questions
     - STAR method examples
@@ -91,9 +91,9 @@ interview_preparation:
 
 networking_advice:
   system: |
-    You are a networking and relationship-building expert. Provide strategic advice on 
+    You are a networking and relationship-building expert. Provide strategic advice on
     building professional networks and leveraging connections for career growth.
-    
+
     Guidelines:
     - Provide practical networking strategies
     - Suggest specific platforms and events
@@ -103,15 +103,15 @@ networking_advice:
 
   user: |
     Provide networking advice for:
-    
+
     Industry: {{industry}}
     Experience Level: {{experience_level}}
     Location: {{location}}
     Goals: {{networking_goals}}
-    
+
     Current Network: {{current_network}}
     Available Time: {{available_time}}
-    
+
     Include:
     - Platform recommendations
     - Event suggestions

@@ -53,7 +53,7 @@ export const FileDrop: React.FC<FileDropProps> = ({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0 && files[0]) {
       handleFile(files[0]);
@@ -72,10 +72,10 @@ export const FileDrop: React.FC<FileDropProps> = ({
   };
 
   const baseClasses = 'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors duration-200';
-  const stateClasses = isDragOver 
-    ? 'border-primary-400 bg-primary-50' 
-    : error 
-      ? 'border-red-300 bg-red-50' 
+  const stateClasses = isDragOver
+    ? 'border-primary-400 bg-primary-50'
+    : error
+      ? 'border-red-300 bg-red-50'
       : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50';
 
   return (
@@ -93,7 +93,7 @@ export const FileDrop: React.FC<FileDropProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
-          
+
           <div>
             <p className="text-lg font-medium text-gray-900">
               Drop your resume here
@@ -107,11 +107,11 @@ export const FileDrop: React.FC<FileDropProps> = ({
           </div>
         </div>
       </div>
-      
+
       {error && (
         <p className="mt-3 text-sm text-red-600 text-center">{error}</p>
       )}
-      
+
       <input
         ref={fileInputRef}
         type="file"

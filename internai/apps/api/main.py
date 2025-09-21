@@ -2,9 +2,6 @@
 FastAPI application for InternAI backend services.
 """
 
-import os
-
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -12,9 +9,7 @@ from pydantic import BaseModel
 from app.agents_registry import ensure_agents_registered
 from app.coral_client import CoralClient
 from app.routes import router
-
-# Load environment variables
-load_dotenv()
+from app.settings import get_settings
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -26,13 +21,10 @@ app = FastAPI(
 )
 
 # Add CORS middleware
+settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js dev server
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",  # Alternative port
-    ],
+    allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -105,7 +97,7 @@ async def api_info():
     """API information endpoint."""
     return {
         "api_version": "1.0.0",
-        "environment": os.getenv("ENVIRONMENT", "development"),
+        "environment": settings.ENVIRONMENT,
         "features": ["cv_analyzer", "job_scout", "matcher", "app_writer", "coach"],
         "coral_status": "connected" if coral_client else "disconnected",
     }

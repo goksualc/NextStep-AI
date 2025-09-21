@@ -30,7 +30,7 @@ export default function Dashboard() {
       });
 
       setSkills(result.skills);
-      
+
       // Clear form
       setLinkedinUrl('');
       setSelectedFile(null);
@@ -154,7 +154,7 @@ export default function Dashboard() {
                 Upload your resume or provide your LinkedIn URL to extract skills and get better matches.
               </p>
             </div>
-            
+
             <div className="space-y-4">
               <Input
                 label="LinkedIn Profile URL (Optional)"
@@ -164,7 +164,7 @@ export default function Dashboard() {
                 onChange={(e) => setLinkedinUrl(e.target.value)}
                 helperText="We&apos;ll analyze your LinkedIn profile to extract relevant skills"
               />
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Or Upload Resume (Optional)
@@ -175,8 +175,8 @@ export default function Dashboard() {
                   maxSize={5}
                 />
               </div>
-              
-              <Button 
+
+              <Button
                 onClick={handleAnalyzeProfile}
                 size="lg"
                 className="w-full"
@@ -206,16 +206,16 @@ export default function Dashboard() {
                 Discover new internship opportunities that match your skills and interests.
               </p>
             </div>
-            
+
             <div className="space-y-4">
-              <Button 
+              <Button
                 onClick={handleFindMatches}
                 size="lg"
                 className="w-full"
               >
                 🔍 Search for Matches
               </Button>
-              
+
               <div className="text-sm text-gray-500">
                 <p>Last search: 2 hours ago</p>
                 <p>Found 12 new opportunities</p>
@@ -252,7 +252,7 @@ export default function Dashboard() {
           <h3 className="text-xl font-semibold text-gray-900">
             Recent Activity
           </h3>
-          
+
           <div className="space-y-3">
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -265,7 +265,7 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-500">2 hours ago</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <span className="text-blue-600 text-sm">🎯</span>
@@ -277,7 +277,7 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-500">4 hours ago</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                 <span className="text-purple-600 text-sm">💡</span>
