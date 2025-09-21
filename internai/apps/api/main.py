@@ -6,10 +6,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app.agents_registry import ensure_agents_registered
+from app.agents_registry import AGENTS, ensure_agents_registered
 from app.coral_client import CoralClient
 from app.routes import router
-from app.settings import get_settings
+from app.settings import settings
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -21,7 +21,6 @@ app = FastAPI(
 )
 
 # Add CORS middleware
-settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.get_cors_origins(),
@@ -43,36 +42,17 @@ class APIInfo(BaseModel):
     description: str
 
 
-# Global Coral client instance
-coral_client = None
-
-
 # Include API routes under /v1 prefix
 app.include_router(router, prefix="/v1", tags=["api"])
 
 
 # Startup event
 @app.on_event("startup")
-async def startup_event():
+async def _startup():
     """Initialize Coral client and register agents on startup."""
-    global coral_client
-
-    try:
-        # Initialize Coral client
-        coral_client = CoralClient(settings.CORAL_SERVER_URL, settings.CORAL_API_KEY)
-        print(f"Connected to Coral server: {settings.CORAL_SERVER_URL}")
-
-        # Register all agents
-        agent_ids = await ensure_agents_registered(coral_client)
-        print(f"Registered {len(agent_ids)} agents with Coral")
-
-    except ValueError as e:
-        print(f"Warning: Coral client initialization failed: {e}")
-        print("Continuing without Coral integration...")
-        coral_client = None
-    except Exception as e:
-        print(f"Warning: Agent registration failed: {e}")
-        print("Continuing without agent registration...")
+    if settings.CORAL_SERVER_URL and settings.CORAL_API_KEY:
+        coral = CoralClient(settings.CORAL_SERVER_URL, settings.CORAL_API_KEY)
+        await ensure_agents_registered(coral)
 
 
 # Root routes
@@ -99,31 +79,60 @@ async def api_info():
         "api_version": "1.0.0",
         "environment": settings.ENVIRONMENT,
         "features": ["cv_analyzer", "job_scout", "matcher", "app_writer", "coach"],
-        "coral_status": "connected" if coral_client else "disconnected",
+        "coral_status": (
+            "configured"
+            if settings.CORAL_SERVER_URL and settings.CORAL_API_KEY
+            else "disconnected"
+        ),
     }
 
 
 @app.get("/v1/agents")
 async def list_agents():
     """
-    List all registered agents.
+    List all registered agents from cache file.
 
     Returns:
-        List of agent metadata and status
+        List of agent metadata with key, name, and id
     """
-    if not coral_client:
-        return {
-            "error": "Coral client not initialized",
-            "agents": [],
-            "status": "disconnected",
-        }
+    import json
+    import os
 
     try:
-        agents = await coral_client.list_agents()
-        return {"agents": agents, "status": "connected", "count": len(agents)}
+        cache_file = ".coral_agents.json"
+        if not os.path.exists(cache_file):
+            return {
+                "agents": [],
+                "status": "no_cache",
+                "message": "No agents registered yet",
+            }
+
+        with open(cache_file) as f:
+            cached_data = json.load(f)
+            agent_ids = cached_data.get("agent_ids", {})
+
+        # Build condensed agent list
+        agents = []
+        for agent in AGENTS:
+            agent_key = agent["key"]
+            agent_id = agent_ids.get(agent_key, "")
+            agents.append(
+                {
+                    "key": agent_key,
+                    "name": agent["name"],
+                    "id": agent_id,
+                }
+            )
+
+        return {
+            "agents": agents,
+            "status": "cached",
+            "count": len(agents),
+        }
+
     except Exception as e:
         return {
-            "error": f"Failed to list agents: {str(e)}",
+            "error": f"Failed to load agents: {str(e)}",
             "agents": [],
             "status": "error",
         }

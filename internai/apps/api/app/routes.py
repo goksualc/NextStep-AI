@@ -405,3 +405,225 @@ async def get_coaching(request: CoachRequest) -> CoachResponse:
         )
 
     return CoachResponse(questions=questions, tips=tips)
+
+
+# Local Agent Endpoints
+@router.post("/local/cv_analyzer")
+async def cv_analyzer(request: dict):
+    """
+    CV Analyzer agent endpoint.
+
+    Args:
+        request: {"text": "..."}
+
+    Returns:
+        {"skills": [...]}
+    """
+    text = request.get("text", "")
+
+    # Simple keyword extraction for now
+    # TODO: Replace with actual LLM processing
+
+    # Common technical skills keywords
+    skill_keywords = [
+        "python",
+        "javascript",
+        "typescript",
+        "java",
+        "c++",
+        "c#",
+        "go",
+        "rust",
+        "react",
+        "vue",
+        "angular",
+        "node.js",
+        "express",
+        "django",
+        "flask",
+        "fastapi",
+        "sql",
+        "postgresql",
+        "mysql",
+        "mongodb",
+        "redis",
+        "elasticsearch",
+        "aws",
+        "azure",
+        "gcp",
+        "docker",
+        "kubernetes",
+        "terraform",
+        "git",
+        "linux",
+        "bash",
+        "jenkins",
+        "gitlab",
+        "machine learning",
+        "deep learning",
+        "tensorflow",
+        "pytorch",
+        "scikit-learn",
+        "pandas",
+        "numpy",
+        "matplotlib",
+        "seaborn",
+        "graphql",
+        "rest api",
+        "microservices",
+        "agile",
+        "scrum",
+        "devops",
+        "figma",
+        "photoshop",
+        "illustrator",
+        "sketch",
+        "data analysis",
+        "statistics",
+        "r",
+        "matlab",
+        "tableau",
+        "power bi",
+        "cybersecurity",
+        "penetration testing",
+        "blockchain",
+        "web3",
+        "solidity",
+    ]
+
+    # Extract skills from text
+    found_skills = []
+    text_lower = text.lower()
+
+    for skill in skill_keywords:
+        if skill.lower() in text_lower:
+            found_skills.append(skill.title())
+
+    # Remove duplicates and return
+    unique_skills = list(set(found_skills))
+
+    return {"skills": unique_skills}
+
+
+@router.post("/local/job_scout")
+async def job_scout(request: dict):
+    """
+    Job Scout agent endpoint.
+
+    Args:
+        request: {"filters": {...}} (ignored for now)
+
+    Returns:
+        {"jobs": [...]} - same as /jobs/sample
+    """
+    # Return the same sample jobs as /jobs/sample
+    sample_jobs = _load_sample_jobs()
+    return {"jobs": sample_jobs}
+
+
+@router.post("/local/matcher")
+async def matcher(request: dict):
+    """
+    Matcher agent endpoint.
+
+    Args:
+        request: {"profile": {...}, "jobs": [...]}
+
+    Returns:
+        {"matches": [...]} - same logic as /match but wrapped
+    """
+    profile_data = request.get("profile", {})
+    jobs_data = request.get("jobs", [])
+
+    if not profile_data or not jobs_data:
+        return {"matches": []}
+
+    # Convert to proper models
+    try:
+        profile = UserProfile(**profile_data)
+        jobs = [JobItem(**job) for job in jobs_data]
+
+        # Use existing match logic
+        matches = await match_jobs(profile, jobs)
+
+        # Wrap in matches format
+        return {"matches": matches}
+
+    except Exception as e:
+        print(f"Error in matcher: {e}")
+        return {"matches": []}
+
+
+@router.post("/local/app_writer")
+async def app_writer(request: dict):
+    """
+    Application Writer agent endpoint.
+
+    Args:
+        request: {"job": {...}, "profile": {...}}
+
+    Returns:
+        {"cover_letter": "..."} - reuse /write logic
+    """
+    job_data = request.get("job", {})
+    profile_data = request.get("profile", {})
+
+    if not job_data or not profile_data:
+        return {"cover_letter": "Missing job or profile data"}
+
+    try:
+        # Convert to proper models
+        job = JobItem(**job_data)
+        profile = UserProfile(**profile_data)
+
+        # Create write request
+        write_request = WriteRequest(job=job, profile=profile)
+
+        # Use existing write logic
+        result = await write_application(write_request)
+
+        return {"cover_letter": result.cover_letter}
+
+    except Exception as e:
+        print(f"Error in app_writer: {e}")
+        return {"cover_letter": f"Error generating cover letter: {str(e)}"}
+
+
+@router.post("/local/coach")
+async def coach(request: dict):
+    """
+    Interview Coach agent endpoint.
+
+    Args:
+        request: {"role": "...", "company": "..."}
+
+    Returns:
+        {"questions": [...], "tips": [...]} - reuse /coach logic
+    """
+    role = request.get("role", "")
+    company = request.get("company", "")
+
+    if not role:
+        return {
+            "questions": [],
+            "tips": ["Please provide a role to get coaching advice"],
+        }
+
+    try:
+        # Create coach request (with minimal profile)
+        coach_request = CoachRequest(
+            role=role,
+            company=company,
+            profile=UserProfile(
+                name="", email="", skills=[], linkedin_url="", resume_url=""
+            ),
+        )
+
+        # Use existing coach logic
+        result = await get_coaching(coach_request)
+
+        return {"questions": result.questions, "tips": result.tips}
+
+    except Exception as e:
+        print(f"Error in coach: {e}")
+        return {"questions": [], "tips": [f"Error getting coaching advice: {str(e)}"]}
