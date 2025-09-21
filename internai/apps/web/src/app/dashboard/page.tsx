@@ -3,10 +3,10 @@
 import React, { useState } from 'react';
 import { Card, Button, FileDrop, Input } from '@/components';
 import { useUserStore } from '@/lib/store';
-import { analyzeProfile, APIError } from '@/lib/api';
+import { analyzeProfile, getSampleJobs, matchJobs, APIError } from '@/lib/api';
 
 export default function Dashboard() {
-  const { profile, setSkills, setLoading, setError, isLoading, error } = useUserStore();
+  const { profile, setSkills, setMissingSkills, setLoading, setError, isLoading, error } = useUserStore();
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -30,6 +30,23 @@ export default function Dashboard() {
       });
 
       setSkills(result.skills);
+
+      // Get missing skills by running a sample match
+      try {
+        const sampleJobs = await getSampleJobs();
+        const matches = await matchJobs({
+          profile: { ...profile, skills: result.skills },
+          jobs: sampleJobs.slice(0, 3) // Only match against first 3 jobs for speed
+        });
+
+        // Collect unique missing skills from all matches
+        const allMissingSkills = matches.flatMap(match => match.missing_skills || []);
+        const uniqueMissingSkills = [...new Set(allMissingSkills)].slice(0, 5); // Top 5 unique missing skills
+        setMissingSkills(uniqueMissingSkills);
+      } catch (matchErr) {
+        console.log('Could not get missing skills:', matchErr);
+        // Continue without missing skills
+      }
 
       // Clear form
       setLinkedinUrl('');
@@ -241,6 +258,38 @@ export default function Dashboard() {
                   {skill}
                 </span>
               ))}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Missing Skills Display */}
+      {profile.missing_skills && profile.missing_skills.length > 0 && (
+        <Card className="bg-orange-50 border-orange-200">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                <span className="text-orange-600 text-sm font-semibold">📈</span>
+              </div>
+              <h3 className="text-xl font-semibold text-orange-900">
+                Top Missing Skills
+              </h3>
+            </div>
+            <p className="text-sm text-orange-700">
+              These skills appear frequently in job postings but are missing from your profile. Consider learning them to improve your match scores!
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {profile.missing_skills.map((skill, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 border border-orange-200"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+            <div className="text-xs text-orange-600">
+              💡 <strong>Tip:</strong> Focus on 1-2 skills that align with your career goals and start learning them through online courses or projects.
             </div>
           </div>
         </Card>

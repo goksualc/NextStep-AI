@@ -1,16 +1,49 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Button, MatchCard } from '@/components';
 import { useUserStore } from '@/lib/store';
 import { matchJobs, getSampleJobs, APIError } from '@/lib/api';
 import { JobItem, MatchResult } from '@/lib/types';
+
+interface Agent {
+  key: string;
+  name: string;
+  id: string;
+}
+
+interface AgentsResponse {
+  agents: Agent[];
+  status: string;
+  count: number;
+}
 
 export default function Matches() {
   const { profile } = useUserStore();
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [coralAgents, setCoralAgents] = useState<Agent[]>([]);
+  const [showCoralBanner, setShowCoralBanner] = useState(false);
+
+  // Check for Coral agents on component mount
+  useEffect(() => {
+    const checkCoralAgents = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/v1/agents');
+        if (response.ok) {
+          const data: AgentsResponse = await response.json();
+          setCoralAgents(data.agents);
+          setShowCoralBanner(data.agents.length > 0);
+        }
+      } catch (err) {
+        // Silently fail - banner won't show if agents can't be fetched
+        console.log('Could not fetch Coral agents for banner');
+      }
+    };
+
+    checkCoralAgents();
+  }, []);
 
   const handleLoadSampleJobs = async () => {
     if (!profile.skills || profile.skills.length === 0) {
@@ -72,6 +105,35 @@ export default function Matches() {
           )}
         </Button>
       </div>
+
+      {/* Coral Banner */}
+      {showCoralBanner && (
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <span className="text-blue-600 text-lg">🤖</span>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-blue-900">
+                  Powered by Coral
+                </h3>
+                <p className="text-sm text-blue-700">
+                  {coralAgents.length} AI agents running on distributed infrastructure
+                </p>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+                Active
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Error Display */}
       {error && (

@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 from fastapi import APIRouter
 
+from .llm import draft_cover_letter, extract_skills_from_text, interview_coach
 from .models import (
     AnalyzeResponse,
     CoachRequest,
@@ -176,11 +177,42 @@ async def analyze_profile(profile: UserProfile) -> AnalyzeResponse:
     Returns:
         AnalyzeResponse: Extracted skills
     """
-    # TODO: Implement actual profile analysis using AI/ML
-    # For now, return stub data
-    stub_skills = ["Python", "React", "JavaScript", "SQL", "Git"]
+    try:
+        # Build text from profile data for analysis
+        profile_text = ""
 
-    return AnalyzeResponse(skills=stub_skills)
+        if profile.name:
+            profile_text += f"Name: {profile.name}\n"
+        if profile.email:
+            profile_text += f"Email: {profile.email}\n"
+        if profile.linkedin_url:
+            profile_text += f"LinkedIn: {profile.linkedin_url}\n"
+        if profile.resume_url:
+            profile_text += f"Resume: {profile.resume_url}\n"
+        if profile.skills:
+            profile_text += f"Skills: {', '.join(profile.skills)}\n"
+
+        # Use LLM to extract skills if we have meaningful text
+        if profile_text.strip():
+            skills = await extract_skills_from_text(profile_text)
+            if skills:
+                return AnalyzeResponse(skills=skills)
+
+        # Fallback to existing skills or default
+        if profile.skills:
+            return AnalyzeResponse(skills=profile.skills)
+
+        # Default fallback
+        return AnalyzeResponse(
+            skills=["Python", "JavaScript", "Git", "Problem Solving"]
+        )
+
+    except Exception as e:
+        print(f"Error in profile analysis: {e}")
+        # Return existing skills or default fallback
+        return AnalyzeResponse(
+            skills=profile.skills or ["Python", "JavaScript", "Git", "Problem Solving"]
+        )
 
 
 def _build_profile_text(profile: UserProfile) -> str:
@@ -329,10 +361,15 @@ async def write_application(request: WriteRequest) -> WriteResponse:
     Returns:
         WriteResponse: Generated cover letter
     """
-    # TODO: Implement actual application writing using AI
-    # For now, return stub cover letter
+    try:
+        # Use LLM to generate cover letter
+        cover_letter = await draft_cover_letter(request.job, request.profile)
+        return WriteResponse(cover_letter=cover_letter)
 
-    cover_letter = f"""
+    except Exception as e:
+        print(f"Error generating cover letter: {e}")
+        # Fallback to template-based cover letter
+        cover_letter = f"""
 Dear Hiring Manager,
 
 I am writing to express my strong interest in the {request.job.title} position at {request.job.company}.
@@ -346,8 +383,7 @@ Thank you for considering my application. I look forward to the opportunity to d
 Best regards,
 {request.profile.name or "Applicant"}
 """
-
-    return WriteResponse(cover_letter=cover_letter.strip())
+        return WriteResponse(cover_letter=cover_letter.strip())
 
 
 @router.post("/coach", response_model=CoachResponse)
@@ -361,50 +397,63 @@ async def get_coaching(request: CoachRequest) -> CoachResponse:
     Returns:
         CoachResponse: Interview questions and career tips
     """
-    # TODO: Implement actual coaching using AI
-    # For now, return stub content
-
-    # Generate role-specific questions
-    questions = [
-        f"Tell me about your experience with {request.role}.",
-        f"What interests you most about working in {request.role}?",
-        "Describe a challenging project you've worked on and how you overcame obstacles.",
-        "How do you stay updated with the latest trends in your field?",
-        "Where do you see yourself in 5 years?",
-    ]
-
-    # Add company-specific question if provided
-    if request.company:
-        questions.append(
-            f"What do you know about {request.company} and why do you want to work here?"
+    try:
+        # Extract skills from profile for better coaching
+        skills = (
+            request.profile.skills if request.profile and request.profile.skills else []
         )
 
-    # Generate tips based on role
-    tips = [
-        f"Research the company thoroughly before your {request.role} interview.",
-        "Prepare specific examples of your achievements using the STAR method.",
-        "Practice explaining technical concepts in simple terms.",
-        "Prepare thoughtful questions to ask the interviewer about the role and company culture.",
-        "Dress professionally and arrive 5-10 minutes early for in-person interviews.",
-    ]
-
-    # Add role-specific tips
-    if "engineer" in request.role.lower():
-        tips.extend(
-            [
-                "Be ready to discuss your coding process and problem-solving approach.",
-                "Prepare to explain technical decisions and trade-offs you've made in past projects.",
-            ]
+        # Use LLM to generate coaching content
+        coaching_data = await interview_coach(
+            request.role, request.company or "", skills
         )
-    elif "data" in request.role.lower():
-        tips.extend(
-            [
-                "Be prepared to discuss your experience with data analysis tools and methodologies.",
-                "Have examples ready of how you've used data to drive business decisions.",
-            ]
+        return CoachResponse(
+            questions=coaching_data["questions"], tips=coaching_data["tips"]
         )
 
-    return CoachResponse(questions=questions, tips=tips)
+    except Exception as e:
+        print(f"Error generating coaching: {e}")
+        # Fallback to template-based coaching
+        questions = [
+            f"Tell me about your experience with {request.role}.",
+            f"What interests you most about working in {request.role}?",
+            "Describe a challenging project you've worked on and how you overcame obstacles.",
+            "How do you stay updated with the latest trends in your field?",
+            "Where do you see yourself in 5 years?",
+        ]
+
+        # Add company-specific question if provided
+        if request.company:
+            questions.append(
+                f"What do you know about {request.company} and why do you want to work here?"
+            )
+
+        # Generate tips based on role
+        tips = [
+            f"Research the company thoroughly before your {request.role} interview.",
+            "Prepare specific examples of your achievements using the STAR method.",
+            "Practice explaining technical concepts in simple terms.",
+            "Prepare thoughtful questions to ask the interviewer about the role and company culture.",
+            "Dress professionally and arrive 5-10 minutes early for in-person interviews.",
+        ]
+
+        # Add role-specific tips
+        if "engineer" in request.role.lower():
+            tips.extend(
+                [
+                    "Be ready to discuss your coding process and problem-solving approach.",
+                    "Prepare to explain technical decisions and trade-offs you've made in past projects.",
+                ]
+            )
+        elif "data" in request.role.lower():
+            tips.extend(
+                [
+                    "Be prepared to discuss your experience with data analysis tools and methodologies.",
+                    "Have examples ready of how you've used data to drive business decisions.",
+                ]
+            )
+
+        return CoachResponse(questions=questions, tips=tips)
 
 
 # Local Agent Endpoints
@@ -421,88 +470,94 @@ async def cv_analyzer(request: dict):
     """
     text = request.get("text", "")
 
-    # Simple keyword extraction for now
-    # TODO: Replace with actual LLM processing
+    if not text.strip():
+        return {"skills": []}
 
-    # Common technical skills keywords
-    skill_keywords = [
-        "python",
-        "javascript",
-        "typescript",
-        "java",
-        "c++",
-        "c#",
-        "go",
-        "rust",
-        "react",
-        "vue",
-        "angular",
-        "node.js",
-        "express",
-        "django",
-        "flask",
-        "fastapi",
-        "sql",
-        "postgresql",
-        "mysql",
-        "mongodb",
-        "redis",
-        "elasticsearch",
-        "aws",
-        "azure",
-        "gcp",
-        "docker",
-        "kubernetes",
-        "terraform",
-        "git",
-        "linux",
-        "bash",
-        "jenkins",
-        "gitlab",
-        "machine learning",
-        "deep learning",
-        "tensorflow",
-        "pytorch",
-        "scikit-learn",
-        "pandas",
-        "numpy",
-        "matplotlib",
-        "seaborn",
-        "graphql",
-        "rest api",
-        "microservices",
-        "agile",
-        "scrum",
-        "devops",
-        "figma",
-        "photoshop",
-        "illustrator",
-        "sketch",
-        "data analysis",
-        "statistics",
-        "r",
-        "matlab",
-        "tableau",
-        "power bi",
-        "cybersecurity",
-        "penetration testing",
-        "blockchain",
-        "web3",
-        "solidity",
-    ]
+    try:
+        # Use LLM to extract skills from text
+        skills = await extract_skills_from_text(text)
+        return {"skills": skills}
 
-    # Extract skills from text
-    found_skills = []
-    text_lower = text.lower()
+    except Exception as e:
+        print(f"Error in CV analyzer: {e}")
+        # Fallback to keyword-based extraction
+        skill_keywords = [
+            "python",
+            "javascript",
+            "typescript",
+            "java",
+            "c++",
+            "c#",
+            "go",
+            "rust",
+            "react",
+            "vue",
+            "angular",
+            "node.js",
+            "express",
+            "django",
+            "flask",
+            "fastapi",
+            "sql",
+            "postgresql",
+            "mysql",
+            "mongodb",
+            "redis",
+            "elasticsearch",
+            "aws",
+            "azure",
+            "gcp",
+            "docker",
+            "kubernetes",
+            "terraform",
+            "git",
+            "linux",
+            "bash",
+            "jenkins",
+            "gitlab",
+            "machine learning",
+            "deep learning",
+            "tensorflow",
+            "pytorch",
+            "scikit-learn",
+            "pandas",
+            "numpy",
+            "matplotlib",
+            "seaborn",
+            "graphql",
+            "rest api",
+            "microservices",
+            "agile",
+            "scrum",
+            "devops",
+            "figma",
+            "photoshop",
+            "illustrator",
+            "sketch",
+            "data analysis",
+            "statistics",
+            "r",
+            "matlab",
+            "tableau",
+            "power bi",
+            "cybersecurity",
+            "penetration testing",
+            "blockchain",
+            "web3",
+            "solidity",
+        ]
 
-    for skill in skill_keywords:
-        if skill.lower() in text_lower:
-            found_skills.append(skill.title())
+        # Extract skills from text
+        found_skills = []
+        text_lower = text.lower()
 
-    # Remove duplicates and return
-    unique_skills = list(set(found_skills))
+        for skill in skill_keywords:
+            if skill.lower() in text_lower:
+                found_skills.append(skill.title())
 
-    return {"skills": unique_skills}
+        # Remove duplicates and return
+        unique_skills = list(set(found_skills))
+        return {"skills": unique_skills}
 
 
 @router.post("/local/job_scout")
@@ -563,7 +618,7 @@ async def app_writer(request: dict):
         request: {"job": {...}, "profile": {...}}
 
     Returns:
-        {"cover_letter": "..."} - reuse /write logic
+        {"cover_letter": "..."} - uses LLM for generation
     """
     job_data = request.get("job", {})
     profile_data = request.get("profile", {})
@@ -576,13 +631,9 @@ async def app_writer(request: dict):
         job = JobItem(**job_data)
         profile = UserProfile(**profile_data)
 
-        # Create write request
-        write_request = WriteRequest(job=job, profile=profile)
-
-        # Use existing write logic
-        result = await write_application(write_request)
-
-        return {"cover_letter": result.cover_letter}
+        # Use LLM directly for cover letter generation
+        cover_letter = await draft_cover_letter(job, profile)
+        return {"cover_letter": cover_letter}
 
     except Exception as e:
         print(f"Error in app_writer: {e}")
@@ -595,13 +646,14 @@ async def coach(request: dict):
     Interview Coach agent endpoint.
 
     Args:
-        request: {"role": "...", "company": "..."}
+        request: {"role": "...", "company": "...", "skills": [...]}
 
     Returns:
-        {"questions": [...], "tips": [...]} - reuse /coach logic
+        {"questions": [...], "tips": [...]} - uses LLM for generation
     """
     role = request.get("role", "")
     company = request.get("company", "")
+    skills = request.get("skills", [])
 
     if not role:
         return {
@@ -610,19 +662,9 @@ async def coach(request: dict):
         }
 
     try:
-        # Create coach request (with minimal profile)
-        coach_request = CoachRequest(
-            role=role,
-            company=company,
-            profile=UserProfile(
-                name="", email="", skills=[], linkedin_url="", resume_url=""
-            ),
-        )
-
-        # Use existing coach logic
-        result = await get_coaching(coach_request)
-
-        return {"questions": result.questions, "tips": result.tips}
+        # Use LLM directly for coaching generation
+        coaching_data = await interview_coach(role, company, skills)
+        return {"questions": coaching_data["questions"], "tips": coaching_data["tips"]}
 
     except Exception as e:
         print(f"Error in coach: {e}")

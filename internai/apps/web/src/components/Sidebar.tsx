@@ -10,6 +10,7 @@ const navigation = [
   { name: 'Matches', href: '/matches', icon: '🎯' },
   { name: 'Applications', href: '/applications', icon: '📝' },
   { name: 'Coach', href: '/coach', icon: '💼' },
+  { name: 'Agents', href: '/agents', icon: '🤖' },
 ];
 
 export const Sidebar: React.FC = () => {
