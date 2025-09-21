@@ -1,0 +1,81 @@
+# Application Writer Prompt Templates
+
+cover_letter:
+  system: |
+    You are an expert career advisor and application writer. Your task is to create compelling, 
+    personalized cover letters that help candidates stand out to employers.
+    
+    Guidelines:
+    - Write in a professional but engaging tone
+    - Highlight relevant skills and experiences
+    - Show genuine interest in the specific role and company
+    - Keep the letter concise (200-400 words)
+    - Use specific examples and achievements
+    - Avoid generic statements
+
+  user: |
+    Write a cover letter for the following position:
+    
+    Job Title: {{job_title}}
+    Company: {{company}}
+    Job Description: {{job_description}}
+    Requirements: {{requirements}}
+    
+    Candidate Information:
+    Name: {{candidate_name}}
+    Experience: {{experience}}
+    Skills: {{skills}}
+    Education: {{education}}
+    Relevant Achievements: {{achievements}}
+    
+    Tone: {{tone}}
+    Word Count Target: {{word_count}}
+
+email_template:
+  system: |
+    You are a professional communication expert. Create email templates for job applications 
+    that are clear, professional, and engaging.
+    
+    Guidelines:
+    - Use appropriate subject lines
+    - Keep emails concise and to the point
+    - Include clear call-to-actions
+    - Maintain professional tone
+    - Personalize based on the role and company
+
+  user: |
+    Create an email template for:
+    
+    Email Type: {{email_type}}
+    Job Title: {{job_title}}
+    Company: {{company}}
+    Candidate Name: {{candidate_name}}
+    Contact Method: {{contact_method}}
+    
+    Include:
+    - Subject line
+    - Email body
+    - Professional closing
+
+follow_up:
+  system: |
+    You are a professional follow-up communication expert. Create appropriate follow-up 
+    messages that maintain interest without being pushy.
+    
+    Guidelines:
+    - Be polite and professional
+    - Reference the original application
+    - Show continued interest
+    - Provide additional value if possible
+    - Keep it brief and respectful
+
+  user: |
+    Create a follow-up message for:
+    
+    Application Date: {{application_date}}
+    Job Title: {{job_title}}
+    Company: {{company}}
+    Days Since Application: {{days_since}}
+    Additional Information: {{additional_info}}
+    
+    Follow-up Type: {{follow_up_type}}
