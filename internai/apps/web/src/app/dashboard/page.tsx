@@ -1,20 +1,48 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/Button';
-import { FileDrop } from '@/components/FileDrop';
+import { Card, Button, FileDrop, Input } from '@/components';
+import { useUserStore } from '@/lib/store';
+import { analyzeProfile, APIError } from '@/lib/api';
 
 export default function Dashboard() {
-  const [isUploading, setIsUploading] = useState(false);
+  const { profile, setSkills, setLoading, setError, isLoading, error } = useUserStore();
+  const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleFileUpload = (file: File) => {
-    setIsUploading(true);
-    // TODO: Implement file upload logic
-    console.log('Uploading file:', file.name);
-    setTimeout(() => {
-      setIsUploading(false);
-    }, 2000);
+    setSelectedFile(file);
+  };
+
+  const handleAnalyzeProfile = async () => {
+    if (!linkedinUrl && !selectedFile) {
+      setError('Please provide either a LinkedIn URL or upload a resume');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await analyzeProfile({
+        linkedinUrl: linkedinUrl || undefined,
+        resumeFile: selectedFile || undefined,
+      });
+
+      setSkills(result.skills);
+      
+      // Clear form
+      setLinkedinUrl('');
+      setSelectedFile(null);
+    } catch (err) {
+      if (err instanceof APIError) {
+        setError(`Analysis failed: ${err.message}`);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFindMatches = () => {
@@ -27,12 +55,28 @@ export default function Dashboard() {
       {/* Welcome Section */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, John! 👋
+          Welcome back, {profile.name || 'John'}! 👋
         </h1>
         <p className="text-lg text-gray-600">
           Let&apos;s find your next amazing internship opportunity.
         </p>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -45,7 +89,9 @@ export default function Dashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Profile Score</p>
-              <p className="text-2xl font-bold text-gray-900">85%</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {profile.skills?.length ? Math.min(95, 60 + (profile.skills.length * 5)) : 0}%
+              </p>
             </div>
           </div>
         </Card>
@@ -58,8 +104,10 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Active Matches</p>
-              <p className="text-2xl font-bold text-gray-900">12</p>
+              <p className="text-sm font-medium text-gray-500">Skills Identified</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {profile.skills?.length || 0}
+              </p>
             </div>
           </div>
         </Card>
@@ -95,30 +143,55 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Upload Resume */}
+        {/* Analyze Profile */}
         <Card>
           <div className="space-y-4">
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Upload Resume
+                Analyze Your Profile
               </h3>
               <p className="text-gray-600">
-                Upload your latest resume to get better matches and personalized recommendations.
+                Upload your resume or provide your LinkedIn URL to extract skills and get better matches.
               </p>
             </div>
             
-            <FileDrop
-              onFileSelect={handleFileUpload}
-              accept=".pdf,.doc,.docx"
-              maxSize={5}
-            />
-            
-            {isUploading && (
-              <div className="flex items-center space-x-2 text-sm text-primary-600">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-600 border-t-transparent"></div>
-                <span>Processing your resume...</span>
+            <div className="space-y-4">
+              <Input
+                label="LinkedIn Profile URL (Optional)"
+                type="url"
+                placeholder="https://linkedin.com/in/yourprofile"
+                value={linkedinUrl}
+                onChange={(e) => setLinkedinUrl(e.target.value)}
+                helperText="We&apos;ll analyze your LinkedIn profile to extract relevant skills"
+              />
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Or Upload Resume (Optional)
+                </label>
+                <FileDrop
+                  onFileSelect={handleFileUpload}
+                  accept=".pdf,.doc,.docx"
+                  maxSize={5}
+                />
               </div>
-            )}
+              
+              <Button 
+                onClick={handleAnalyzeProfile}
+                size="lg"
+                className="w-full"
+                disabled={isLoading || (!linkedinUrl && !selectedFile)}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    Analyzing...
+                  </>
+                ) : (
+                  '🔍 Analyze Profile'
+                )}
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -151,6 +224,27 @@ export default function Dashboard() {
           </div>
         </Card>
       </div>
+
+      {/* Skills Display */}
+      {profile.skills && profile.skills.length > 0 && (
+        <Card>
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-gray-900">
+              Your Skills
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {profile.skills.map((skill, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Recent Activity */}
       <Card>

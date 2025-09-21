@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1",
+    "source": "linkedin",
+    "title": "Software Engineering Intern",
+    "company": "TechCorp",
+    "location": "San Francisco, CA",
+    "url": "https://linkedin.com/jobs/view/1234567890",
+    "desc": "Join our engineering team to build scalable web applications using modern technologies. Work with React, Node.js, and cloud platforms to deliver features that impact millions of users."
+  },
+  {
+    "id": "2",
+    "source": "indeed",
+    "title": "Data Science Intern",
+    "company": "DataCorp",
+    "location": "New York, NY",
+    "url": "https://indeed.com/viewjob?jk=abcdef123456",
+    "desc": "Work on machine learning models and data analysis for our product recommendations. Experience with Python, pandas, and scikit-learn preferred."
+  },
+  {
+    "id": "3",
+    "source": "company_website",
+    "title": "Full Stack Developer Intern",
+    "company": "StartupXYZ",
+    "location": "Remote",
+    "url": "https://startupxyz.com/careers/intern",
+    "desc": "Build features for our SaaS platform using React, Node.js, and PostgreSQL. Great opportunity to work with a fast-growing startup and learn modern web development."
+  },
+  {
+    "id": "4",
+    "source": "linkedin",
+    "title": "Product Management Intern",
+    "company": "BigTech Inc",
+    "location": "Seattle, WA",
+    "url": "https://linkedin.com/jobs/view/9876543210",
+    "desc": "Support product managers in defining requirements, conducting user research, and analyzing metrics. Strong analytical and communication skills required."
+  },
+  {
+    "id": "5",
+    "source": "glassdoor",
+    "title": "DevOps Engineering Intern",
+    "company": "CloudTech",
+    "location": "Austin, TX",
+    "url": "https://glassdoor.com/job-listing/devops-intern/123456789",
+    "desc": "Learn infrastructure automation, containerization with Docker/Kubernetes, and cloud deployment on AWS. Experience with Linux and scripting languages helpful."
+  },
+  {
+    "id": "6",
+    "source": "linkedin",
+    "title": "Frontend Developer Intern",
+    "company": "DesignStudio",
+    "location": "Los Angeles, CA",
+    "url": "https://linkedin.com/jobs/view/5556667778",
+    "desc": "Create beautiful user interfaces using React, TypeScript, and modern CSS. Work closely with designers to implement pixel-perfect designs and ensure great user experiences."
+  },
+  {
+    "id": "7",
+    "source": "indeed",
+    "title": "Backend Developer Intern",
+    "company": "API Solutions",
+    "location": "Boston, MA",
+    "url": "https://indeed.com/viewjob?jk=backend123456",
+    "desc": "Develop RESTful APIs and microservices using Python/Flask or Node.js. Experience with databases, caching, and API design patterns preferred."
+  },
+  {
+    "id": "8",
+    "source": "company_website",
+    "title": "Machine Learning Intern",
+    "company": "AI Innovations",
+    "location": "Palo Alto, CA",
+    "url": "https://aiinnovations.com/careers/ml-intern",
+    "desc": "Research and implement machine learning algorithms for computer vision and NLP applications. Strong background in mathematics and programming required."
+  }
+]

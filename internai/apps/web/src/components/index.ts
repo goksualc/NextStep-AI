@@ -5,3 +5,5 @@ export { FileDrop } from './FileDrop';
 export { MatchCard } from './MatchCard';
 export { Sidebar } from './Sidebar';
 export { TopBar } from './TopBar';
+export { Modal } from './Modal';
+export { Input } from './Input';

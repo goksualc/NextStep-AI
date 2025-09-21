@@ -1,11 +1,56 @@
 'use client';
 
-import React from 'react';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/Button';
+import React, { useState } from 'react';
+import { Card, Button, MatchCard } from '@/components';
+import { useUserStore } from '@/lib/store';
+import { matchJobs, APIError } from '@/lib/api';
+import { JobItem, MatchResult } from '@/lib/types';
 
 export default function Matches() {
-  const hasMatches = false; // This would come from your state/API
+  const { profile } = useUserStore();
+  const [matches, setMatches] = useState<MatchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLoadSampleJobs = async () => {
+    if (!profile.skills || profile.skills.length === 0) {
+      setError('Please analyze your profile first to get personalized matches');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Load sample jobs from JSON file
+      const response = await fetch('/sample_jobs.json');
+      if (!response.ok) {
+        throw new Error('Failed to load sample jobs');
+      }
+      const sampleJobs: JobItem[] = await response.json();
+
+      // Call the match API
+      const results = await matchJobs({
+        profile: profile,
+        jobs: sampleJobs
+      });
+
+      setMatches(results);
+    } catch (err) {
+      if (err instanceof APIError) {
+        setError(`Matching failed: ${err.message}`);
+      } else {
+        setError('An unexpected error occurred while loading matches');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleWriteCoverLetter = async (job: JobItem) => {
+    // This will be handled by the MatchCard component
+    console.log('Writing cover letter for:', job.title);
+  };
 
   return (
     <div className="space-y-6">
@@ -17,15 +62,53 @@ export default function Matches() {
             AI-powered job matches tailored to your profile
           </p>
         </div>
-        <Button>
-          🔄 Refresh Matches
+        <Button 
+          onClick={handleLoadSampleJobs}
+          disabled={isLoading || !profile.skills || profile.skills.length === 0}
+        >
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+              Loading...
+            </>
+          ) : (
+            '🔄 Load Sample Jobs'
+          )}
         </Button>
       </div>
 
-      {hasMatches ? (
-        /* Matches Grid - This would show when there are matches */
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {matches.length > 0 ? (
+        /* Matches Grid */
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Match cards would go here */}
+          {matches.map((match, index) => (
+            <MatchCard
+              key={match.job.id}
+              title={match.job.title}
+              company={match.job.company}
+              location={match.job.location || 'Not specified'}
+              score={match.score}
+              onWriteCoverLetter={() => handleWriteCoverLetter(match.job)}
+              description={match.job.desc}
+              type="Internship"
+              postedDate="2 days ago"
+            />
+          ))}
         </div>
       ) : (
         /* Empty State */
@@ -39,29 +122,41 @@ export default function Matches() {
             {/* Content */}
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-gray-900">
-                No matches yet
+                {!profile.skills || profile.skills.length === 0 
+                  ? "Analyze your profile first" 
+                  : "No matches yet"
+                }
               </h3>
               <p className="text-gray-600">
-                We&apos;re working hard to find the perfect internship opportunities for you. 
-                Upload your resume and complete your profile to get better matches.
+                {!profile.skills || profile.skills.length === 0
+                  ? "Upload your resume or provide your LinkedIn URL on the dashboard to get personalized matches."
+                  : "Click &quot;Load Sample Jobs&quot; to see AI-powered matches based on your skills."
+                }
               </p>
             </div>
 
             {/* Actions */}
             <div className="space-y-3">
-              <Button size="lg" className="w-full">
-                📄 Upload Resume
-              </Button>
-              <Button variant="outline" size="lg" className="w-full">
-                🔍 Search Jobs Manually
-              </Button>
+              {(!profile.skills || profile.skills.length === 0) ? (
+                <Button size="lg" className="w-full" onClick={() => window.location.href = '/dashboard'}>
+                  📄 Go to Dashboard
+                </Button>
+              ) : (
+                <Button 
+                  size="lg" 
+                  className="w-full"
+                  onClick={handleLoadSampleJobs}
+                  disabled={isLoading}
+                >
+                  🔍 Load Sample Jobs
+                </Button>
+              )}
             </div>
 
             {/* Help Text */}
             <div className="text-sm text-gray-500 pt-4 border-t border-gray-100">
               <p>
-                <strong>Tip:</strong> Complete your profile and upload your resume to get 
-                personalized matches within 24 hours.
+                <strong>Tip:</strong> The more complete your profile, the better your matches will be.
               </p>
             </div>
           </div>
