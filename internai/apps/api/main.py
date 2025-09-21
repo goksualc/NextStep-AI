@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.routes import router
+from app.coral_client import CoralClient
+from app.agents_registry import ensure_agents_registered
 
 # Load environment variables
 load_dotenv()
@@ -49,8 +51,36 @@ class APIInfo(BaseModel):
     description: str
 
 
+# Global Coral client instance
+coral_client = None
+
+
 # Include API routes under /v1 prefix
 app.include_router(router, prefix="/v1", tags=["api"])
+
+
+# Startup event
+@app.on_event("startup")
+async def startup_event():
+    """Initialize Coral client and register agents on startup."""
+    global coral_client
+    
+    try:
+        # Initialize Coral client
+        coral_client = CoralClient()
+        print(f"Connected to Coral server: {coral_client.server_url}")
+        
+        # Register all agents
+        agent_ids = ensure_agents_registered(coral_client)
+        print(f"Registered {len(agent_ids)} agents with Coral")
+        
+    except ValueError as e:
+        print(f"Warning: Coral client initialization failed: {e}")
+        print("Continuing without Coral integration...")
+        coral_client = None
+    except Exception as e:
+        print(f"Warning: Agent registration failed: {e}")
+        print("Continuing without agent registration...")
 
 
 # Root routes
@@ -77,7 +107,38 @@ async def api_info():
         "api_version": "1.0.0",
         "environment": os.getenv("ENVIRONMENT", "development"),
         "features": ["cv_analyzer", "job_scout", "matcher", "app_writer", "coach"],
+        "coral_status": "connected" if coral_client else "disconnected",
     }
+
+
+@app.get("/v1/agents")
+async def list_agents():
+    """
+    List all registered agents.
+    
+    Returns:
+        List of agent metadata and status
+    """
+    if not coral_client:
+        return {
+            "error": "Coral client not initialized",
+            "agents": [],
+            "status": "disconnected"
+        }
+    
+    try:
+        agents = coral_client.list_agents()
+        return {
+            "agents": agents,
+            "status": "connected",
+            "count": len(agents)
+        }
+    except Exception as e:
+        return {
+            "error": f"Failed to list agents: {str(e)}",
+            "agents": [],
+            "status": "error"
+        }
 
 
 if __name__ == "__main__":
