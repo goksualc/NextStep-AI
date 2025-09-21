@@ -2,73 +2,91 @@
   {
     "id": "1",
     "source": "linkedin",
-    "title": "Software Engineering Intern",
-    "company": "TechCorp",
-    "location": "San Francisco, CA",
-    "url": "https://linkedin.com/jobs/view/1234567890",
-    "desc": "Join our engineering team to build scalable web applications using modern technologies. Work with React, Node.js, and cloud platforms to deliver features that impact millions of users."
+    "title": "AI/ML Engineering Intern",
+    "company": "TechCorp AI",
+    "location": "New York, NY",
+    "url": "https://linkedin.com/jobs/ai-ml-intern-techcorp",
+    "desc": "Join our AI team to work on cutting-edge machine learning models. We're looking for someone with Python experience, knowledge of TensorFlow or PyTorch, and interest in natural language processing. You'll work on real-world AI applications that impact millions of users."
   },
   {
     "id": "2",
     "source": "indeed",
-    "title": "Data Science Intern",
-    "company": "DataCorp",
-    "location": "New York, NY",
-    "url": "https://indeed.com/viewjob?jk=abcdef123456",
-    "desc": "Work on machine learning models and data analysis for our product recommendations. Experience with Python, pandas, and scikit-learn preferred."
+    "title": "Backend Developer Intern",
+    "company": "StartupXYZ",
+    "location": "Remote",
+    "url": "https://indeed.com/jobs/backend-intern-startupxyz",
+    "desc": "Build scalable backend systems using Node.js and Python. Work with microservices architecture, REST APIs, and databases. Experience with AWS, Docker, and Git required. Great opportunity to learn modern development practices in a fast-paced environment."
   },
   {
     "id": "3",
-    "source": "company_website",
-    "title": "Full Stack Developer Intern",
-    "company": "StartupXYZ",
-    "location": "Remote",
-    "url": "https://startupxyz.com/careers/intern",
-    "desc": "Build features for our SaaS platform using React, Node.js, and PostgreSQL. Great opportunity to work with a fast-growing startup and learn modern web development."
+    "source": "glassdoor",
+    "title": "Developer Relations Intern",
+    "company": "DevTools Inc",
+    "location": "New York, NY",
+    "url": "https://glassdoor.com/jobs/devrel-intern-devtools",
+    "desc": "Help developers succeed with our platform. Create technical content, documentation, and code samples. Experience with JavaScript, Python, or Go preferred. Strong communication skills and passion for developer education essential."
   },
   {
     "id": "4",
     "source": "linkedin",
-    "title": "Product Management Intern",
-    "company": "BigTech Inc",
-    "location": "Seattle, WA",
-    "url": "https://linkedin.com/jobs/view/9876543210",
-    "desc": "Support product managers in defining requirements, conducting user research, and analyzing metrics. Strong analytical and communication skills required."
+    "title": "Cybersecurity Intern",
+    "company": "SecureNet Solutions",
+    "location": "Remote",
+    "url": "https://linkedin.com/jobs/cybersecurity-intern-securenet",
+    "desc": "Protect our infrastructure from cyber threats. Learn penetration testing, vulnerability assessment, and security monitoring. Knowledge of Linux, networking, and programming languages helpful. Work with experienced security professionals on real-world challenges."
   },
   {
     "id": "5",
-    "source": "glassdoor",
-    "title": "DevOps Engineering Intern",
-    "company": "CloudTech",
-    "location": "Austin, TX",
-    "url": "https://glassdoor.com/job-listing/devops-intern/123456789",
-    "desc": "Learn infrastructure automation, containerization with Docker/Kubernetes, and cloud deployment on AWS. Experience with Linux and scripting languages helpful."
+    "source": "indeed",
+    "title": "Data Science Intern",
+    "company": "DataDriven Corp",
+    "location": "New York, NY",
+    "url": "https://indeed.com/jobs/data-science-intern-datadriven",
+    "desc": "Analyze large datasets to drive business decisions. Use Python, R, SQL, and visualization tools. Experience with pandas, scikit-learn, and statistical analysis preferred. Work on projects that directly impact company strategy and growth."
   },
   {
     "id": "6",
-    "source": "linkedin",
-    "title": "Frontend Developer Intern",
-    "company": "DesignStudio",
-    "location": "Los Angeles, CA",
-    "url": "https://linkedin.com/jobs/view/5556667778",
-    "desc": "Create beautiful user interfaces using React, TypeScript, and modern CSS. Work closely with designers to implement pixel-perfect designs and ensure great user experiences."
+    "source": "glassdoor",
+    "title": "Full Stack Developer Intern",
+    "company": "WebTech Solutions",
+    "location": "Remote",
+    "url": "https://glassdoor.com/jobs/fullstack-intern-webtech",
+    "desc": "Build end-to-end web applications using React, Node.js, and PostgreSQL. Work on both frontend and backend development. Experience with JavaScript, HTML/CSS, and databases required. Learn modern web development best practices."
   },
   {
     "id": "7",
-    "source": "indeed",
-    "title": "Backend Developer Intern",
-    "company": "API Solutions",
-    "location": "Boston, MA",
-    "url": "https://indeed.com/viewjob?jk=backend123456",
-    "desc": "Develop RESTful APIs and microservices using Python/Flask or Node.js. Experience with databases, caching, and API design patterns preferred."
+    "source": "linkedin",
+    "title": "Machine Learning Research Intern",
+    "company": "AI Research Lab",
+    "location": "New York, NY",
+    "url": "https://linkedin.com/jobs/ml-research-intern-ai-lab",
+    "desc": "Contribute to cutting-edge ML research projects. Work with deep learning models, computer vision, and NLP. Strong Python skills and experience with PyTorch or TensorFlow required. Collaborate with PhD researchers on publishable work."
   },
   {
     "id": "8",
-    "source": "company_website",
-    "title": "Machine Learning Intern",
-    "company": "AI Innovations",
-    "location": "Palo Alto, CA",
-    "url": "https://aiinnovations.com/careers/ml-intern",
-    "desc": "Research and implement machine learning algorithms for computer vision and NLP applications. Strong background in mathematics and programming required."
+    "source": "indeed",
+    "title": "DevOps Engineering Intern",
+    "company": "CloudScale Technologies",
+    "location": "Remote",
+    "url": "https://indeed.com/jobs/devops-intern-cloudscale",
+    "desc": "Automate and optimize our cloud infrastructure. Work with AWS, Docker, Kubernetes, and CI/CD pipelines. Linux administration and scripting skills preferred. Learn infrastructure as code and modern deployment practices."
+  },
+  {
+    "id": "9",
+    "source": "glassdoor",
+    "title": "Data Engineering Intern",
+    "company": "BigData Systems",
+    "location": "New York, NY",
+    "url": "https://glassdoor.com/jobs/data-engineering-intern-bigdata",
+    "desc": "Build data pipelines and ETL processes. Work with Apache Spark, Kafka, and cloud data warehouses. Python, SQL, and experience with big data tools preferred. Help process terabytes of data for analytics and machine learning."
+  },
+  {
+    "id": "10",
+    "source": "linkedin",
+    "title": "Security Engineering Intern",
+    "company": "CyberGuard Inc",
+    "location": "Remote",
+    "url": "https://linkedin.com/jobs/security-engineering-intern-cyberguard",
+    "desc": "Develop security tools and automation. Work on threat detection, incident response, and security monitoring systems. Programming experience in Python, Go, or Rust preferred. Learn about modern security practices and threat landscape."
   }
 ]

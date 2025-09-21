@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, Button, MatchCard } from '@/components';
 import { useUserStore } from '@/lib/store';
-import { matchJobs, APIError } from '@/lib/api';
+import { matchJobs, getSampleJobs, APIError } from '@/lib/api';
 import { JobItem, MatchResult } from '@/lib/types';
 
 export default function Matches() {
@@ -22,12 +22,8 @@ export default function Matches() {
     setError(null);
 
     try {
-      // Load sample jobs from JSON file
-      const response = await fetch('/sample_jobs.json');
-      if (!response.ok) {
-        throw new Error('Failed to load sample jobs');
-      }
-      const sampleJobs: JobItem[] = await response.json();
+      // Load sample jobs from API
+      const sampleJobs = await getSampleJobs();
 
       // Call the match API
       const results = await matchJobs({
@@ -107,6 +103,7 @@ export default function Matches() {
               description={match.job.desc}
               type="Internship"
               postedDate="2 days ago"
+              missingSkills={match.missing_skills}
             />
           ))}
         </div>

@@ -3,6 +3,7 @@ API routes for InternAI services.
 """
 
 # Import embeddings from the local package
+import json
 import sys
 from pathlib import Path
 
@@ -44,6 +45,31 @@ except Exception as e:
     cosine_sim = None
 
 router = APIRouter()
+
+# Load and cache sample jobs
+_sample_jobs_cache = None
+
+
+def _load_sample_jobs():
+    """Load sample jobs from the web app's public directory."""
+    global _sample_jobs_cache
+    if _sample_jobs_cache is None:
+        try:
+            # Path to the sample jobs JSON file in the web app
+            sample_jobs_path = (
+                Path(__file__).parent.parent.parent.parent
+                / "apps"
+                / "web"
+                / "public"
+                / "sample_jobs.json"
+            )
+            with open(sample_jobs_path) as f:
+                _sample_jobs_cache = json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load sample jobs: {e}")
+            _sample_jobs_cache = []
+    return _sample_jobs_cache
+
 
 # Initialize EmbeddingsClient with settings
 settings = get_settings()
@@ -126,6 +152,17 @@ SKILL_KEYWORDS = {
     "web3",
     "solidity",
 }
+
+
+@router.get("/jobs/sample")
+async def get_sample_jobs():
+    """
+    Get sample job opportunities for testing and demonstration.
+
+    Returns:
+        List of sample JobItem objects
+    """
+    return _load_sample_jobs()
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)

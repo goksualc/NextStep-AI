@@ -15,6 +15,7 @@ interface MatchCardProps {
   description?: string;
   type?: string;
   postedDate?: string;
+  missingSkills?: string[];
 }
 
 export const MatchCard: React.FC<MatchCardProps> = ({
@@ -25,7 +26,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   onWriteCoverLetter,
   description,
   type = 'Internship',
-  postedDate
+  postedDate,
+  missingSkills = []
 }) => {
   const { profile } = useUserStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -134,6 +136,25 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             <p className="text-gray-700 text-sm leading-relaxed">
               {description}
             </p>
+          )}
+
+          {/* Missing Skills */}
+          {missingSkills.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">
+                Skills to develop:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {missingSkills.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Actions */}
