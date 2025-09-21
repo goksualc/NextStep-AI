@@ -2,6 +2,10 @@
 API routes for InternAI services.
 """
 
+import sys
+from pathlib import Path
+
+import numpy as np
 from fastapi import APIRouter
 
 from .models import (
@@ -14,8 +18,103 @@ from .models import (
     WriteRequest,
     WriteResponse,
 )
+from .settings import get_settings
+
+# Add packages to path for imports
+packages_path = Path(__file__).parent.parent.parent.parent / "packages" / "embeddings"
+sys.path.insert(0, str(packages_path))
+
+try:
+    from embeddings import EmbeddingsClient, cosine_sim
+except ImportError as e:
+    print(f"Warning: Could not import embeddings module: {e}")
+    print("Embeddings functionality will be disabled. Install the embeddings package.")
+    EmbeddingsClient = None
+    cosine_sim = None
 
 router = APIRouter()
+
+# Initialize EmbeddingsClient with settings
+settings = get_settings()
+embeddings_client = None
+
+if EmbeddingsClient and settings.MISTRAL_API_KEY:
+    try:
+        embeddings_client = EmbeddingsClient(
+            api_key=settings.MISTRAL_API_KEY, model="mistral-embed"
+        )
+    except Exception as e:
+        print(f"Warning: Could not initialize EmbeddingsClient: {e}")
+        embeddings_client = None
+
+# Curated set of skill keywords for missing skills detection
+SKILL_KEYWORDS = {
+    "python",
+    "javascript",
+    "typescript",
+    "java",
+    "c++",
+    "c#",
+    "go",
+    "rust",
+    "swift",
+    "kotlin",
+    "react",
+    "vue",
+    "angular",
+    "node.js",
+    "express",
+    "django",
+    "flask",
+    "fastapi",
+    "spring",
+    "sql",
+    "postgresql",
+    "mysql",
+    "mongodb",
+    "redis",
+    "elasticsearch",
+    "aws",
+    "azure",
+    "gcp",
+    "docker",
+    "kubernetes",
+    "terraform",
+    "jenkins",
+    "gitlab",
+    "machine learning",
+    "deep learning",
+    "tensorflow",
+    "pytorch",
+    "scikit-learn",
+    "pandas",
+    "numpy",
+    "graphql",
+    "rest api",
+    "microservices",
+    "agile",
+    "scrum",
+    "devops",
+    "ci/cd",
+    "linux",
+    "bash",
+    "git",
+    "jira",
+    "confluence",
+    "figma",
+    "photoshop",
+    "data analysis",
+    "statistics",
+    "r",
+    "matlab",
+    "tableau",
+    "power bi",
+    "cybersecurity",
+    "penetration testing",
+    "blockchain",
+    "web3",
+    "solidity",
+}
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
@@ -36,10 +135,71 @@ async def analyze_profile(profile: UserProfile) -> AnalyzeResponse:
     return AnalyzeResponse(skills=stub_skills)
 
 
+def _build_profile_text(profile: UserProfile) -> str:
+    """Build a comprehensive profile text from user data."""
+    parts = []
+
+    # Add skills
+    if profile.skills:
+        parts.append(f"Skills: {', '.join(profile.skills)}")
+
+    # Add LinkedIn profile reference
+    if profile.linkedin_url:
+        parts.append(f"LinkedIn: {profile.linkedin_url}")
+
+    # Add name and email for context
+    if profile.name:
+        parts.append(f"Name: {profile.name}")
+    if profile.email:
+        parts.append(f"Email: {profile.email}")
+
+    # Add resume reference
+    if profile.resume_url:
+        parts.append(f"Resume: {profile.resume_url}")
+
+    return " | ".join(parts)
+
+
+def _build_job_text(job: JobItem) -> str:
+    """Build a comprehensive job text from job data."""
+    parts = [f"Title: {job.title}", f"Company: {job.company}"]
+
+    if job.location:
+        parts.append(f"Location: {job.location}")
+
+    if job.desc:
+        parts.append(f"Description: {job.desc}")
+
+    return " | ".join(parts)
+
+
+def _find_missing_skills(profile: UserProfile, job: JobItem) -> list[str]:
+    """Find skills present in job description but missing from profile."""
+    if not profile.skills or not job.desc:
+        return []
+
+    # Check each skill keyword against job description
+    missing_skills = []
+    job_desc_lower = job.desc.lower()
+
+    for skill in SKILL_KEYWORDS:
+        # Check if skill appears in job description
+        if skill.lower() in job_desc_lower:
+            # Check if user doesn't have this skill
+            if not any(
+                skill.lower() in profile_skill.lower()
+                for profile_skill in profile.skills
+            ):
+                missing_skills.append(skill.title())
+
+    # Return top 5 missing skills
+    return missing_skills[:5]
+
+
 @router.post("/match", response_model=list[MatchResult])
 async def match_jobs(profile: UserProfile, jobs: list[JobItem]) -> list[MatchResult]:
     """
-    Match user profile with job opportunities.
+    Match user profile with job opportunities using embeddings-based similarity.
 
     Args:
         profile: User profile information
@@ -48,30 +208,65 @@ async def match_jobs(profile: UserProfile, jobs: list[JobItem]) -> list[MatchRes
     Returns:
         List[MatchResult]: Matched jobs with scores and missing skills
     """
-    # TODO: Implement actual matching algorithm using AI
-    # For now, return stub data with dummy scores
+    if not jobs:
+        return []
+
+    # Build profile text
+    profile_text = _build_profile_text(profile)
+
+    # Build job texts
+    job_texts = [_build_job_text(job) for job in jobs]
+
+    # Prepare all texts for embedding (profile + all jobs)
+    all_texts = [profile_text] + job_texts
+
+    # Check if embeddings client is available
+    if embeddings_client and cosine_sim:
+        try:
+            # Get embeddings for all texts
+            embeddings = embeddings_client.embed_texts(all_texts)
+
+            # Extract profile embedding (first one)
+            profile_embedding = np.array(embeddings[0])
+
+            # Calculate similarities and build results
+            results = []
+            for i, (job, _job_text) in enumerate(zip(jobs, job_texts, strict=False)):
+                # Get job embedding (i+1 because profile is at index 0)
+                job_embedding = np.array(embeddings[i + 1])
+
+                # Calculate cosine similarity
+                similarity = cosine_sim(profile_embedding, job_embedding)
+
+                # Convert to score (0-100) and round to 1 decimal
+                score = round(similarity * 100, 1)
+
+                # Find missing skills
+                missing_skills = _find_missing_skills(profile, job)
+
+                results.append(
+                    MatchResult(job=job, score=score, missing_skills=missing_skills)
+                )
+
+            # Sort by score (highest first)
+            results.sort(key=lambda x: x.score, reverse=True)
+
+            return results
+
+        except Exception as e:
+            # Fallback to simple scoring if embeddings fail
+            print(f"Embeddings failed, using fallback: {e}")
+
+    # Fallback to simple scoring if embeddings client is not available
     results = []
-
     for i, job in enumerate(jobs):
-        # Generate dummy score based on job index
+        # Simple fallback scoring
         score = max(60, 95 - (i * 5))
-        if score < 60:
-            score = 60
-
-        # Generate dummy missing skills
-        missing_skills = []
-        if i % 2 == 0:
-            missing_skills = ["Machine Learning", "Docker"]
-        elif i % 3 == 0:
-            missing_skills = ["AWS", "Kubernetes"]
-        else:
-            missing_skills = ["GraphQL"]
+        missing_skills = _find_missing_skills(profile, job)
 
         results.append(MatchResult(job=job, score=score, missing_skills=missing_skills))
 
-    # Sort by score (highest first)
     results.sort(key=lambda x: x.score, reverse=True)
-
     return results
 
 
