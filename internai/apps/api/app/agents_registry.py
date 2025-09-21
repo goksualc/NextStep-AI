@@ -8,247 +8,112 @@ from typing import Any
 
 from .coral_client import CoralClient
 
-# Agent metadata definitions
-AGENT_METADATA = {
-    "cv_analyzer": {
-        "name": "cv_analyzer",
-        "description": "Analyzes CVs and resumes to extract structured information including skills, experience, and qualifications",
-        "endpoint": "/v1/analyze",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "name": {"type": "string", "description": "Full name of the user"},
-                "email": {"type": "string", "description": "Email address"},
-                "linkedin_url": {
-                    "type": "string",
-                    "description": "LinkedIn profile URL",
-                },
-                "resume_url": {
-                    "type": "string",
-                    "description": "URL to resume/CV file",
-                },
-                "skills": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "List of user skills",
+# Simplified agent definitions
+AGENTS = [
+    {
+        "key": "cv_analyzer",
+        "name": "CV Analyzer",
+        "description": "Extracts skills & highlights from resume/LinkedIn.",
+        "schema": {
+            "input": {
+                "type": "object",
+                "properties": {"text": {"type": "string"}},
+                "required": ["text"],
+            },
+            "output": {
+                "type": "object",
+                "properties": {
+                    "skills": {"type": "array", "items": {"type": "string"}}
                 },
             },
-            "required": [],
         },
-        "output_schema": {
-            "type": "object",
-            "properties": {
-                "skills": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Extracted skills from profile",
-                }
-            },
-            "required": ["skills"],
-        },
-        "pricing": {"per_request": 0.01, "currency": "USD"},
+        "endpoint": "/v1/local/cv_analyzer",
     },
-    "job_scout": {
-        "name": "job_scout",
-        "description": "Discovers and scouts job opportunities from various sources including LinkedIn, Indeed, and company websites",
-        "endpoint": "/v1/scout",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "keywords": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Search keywords for job discovery",
-                },
-                "location": {"type": "string", "description": "Preferred job location"},
-                "job_type": {
-                    "type": "string",
-                    "description": "Type of job (internship, full-time, etc.)",
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Maximum number of results",
-                },
-            },
-            "required": ["keywords"],
+    {
+        "key": "job_scout",
+        "name": "Job Scout",
+        "description": "Returns curated internship listings.",
+        "schema": {
+            "input": {"type": "object", "properties": {"filters": {"type": "object"}}},
+            "output": {"type": "object", "properties": {"jobs": {"type": "array"}}},
         },
-        "output_schema": {
-            "type": "object",
-            "properties": {
-                "jobs": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "id": {"type": "string"},
-                            "title": {"type": "string"},
-                            "company": {"type": "string"},
-                            "location": {"type": "string"},
-                            "url": {"type": "string"},
-                        },
-                    },
-                }
-            },
-            "required": ["jobs"],
-        },
-        "pricing": {"per_request": 0.02, "currency": "USD"},
+        "endpoint": "/v1/local/job_scout",
     },
-    "matcher": {
-        "name": "matcher",
-        "description": "Matches user profiles with job opportunities using AI-powered algorithms to calculate compatibility scores",
-        "endpoint": "/v1/match",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "profile": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "email": {"type": "string"},
-                        "linkedin_url": {"type": "string"},
-                        "resume_url": {"type": "string"},
-                        "skills": {"type": "array", "items": {"type": "string"}},
-                    },
+    {
+        "key": "matcher",
+        "name": "Matcher",
+        "description": "Embeddings-based job matching.",
+        "schema": {
+            "input": {
+                "type": "object",
+                "properties": {
+                    "profile": {"type": "object"},
+                    "jobs": {"type": "array"},
                 },
-                "jobs": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "id": {"type": "string"},
-                            "source": {"type": "string"},
-                            "title": {"type": "string"},
-                            "company": {"type": "string"},
-                            "location": {"type": "string"},
-                            "url": {"type": "string"},
-                            "desc": {"type": "string"},
-                        },
-                    },
-                },
+                "required": ["profile", "jobs"],
             },
-            "required": ["profile", "jobs"],
+            "output": {"type": "object", "properties": {"matches": {"type": "array"}}},
         },
-        "output_schema": {
-            "type": "object",
-            "properties": {
-                "matches": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "job": {"type": "object"},
-                            "score": {"type": "number", "minimum": 0, "maximum": 100},
-                            "missing_skills": {
-                                "type": "array",
-                                "items": {"type": "string"},
-                            },
-                        },
-                    },
-                }
-            },
-            "required": ["matches"],
-        },
-        "pricing": {"per_request": 0.03, "currency": "USD"},
+        "endpoint": "/v1/local/matcher",
     },
-    "app_writer": {
-        "name": "app_writer",
-        "description": "Generates personalized cover letters and application materials tailored to specific job opportunities",
-        "endpoint": "/v1/write",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "job": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "string"},
-                        "source": {"type": "string"},
-                        "title": {"type": "string"},
-                        "company": {"type": "string"},
-                        "location": {"type": "string"},
-                        "url": {"type": "string"},
-                        "desc": {"type": "string"},
-                    },
+    {
+        "key": "app_writer",
+        "name": "Application Writer",
+        "description": "Role/company-specific cover letter drafting.",
+        "schema": {
+            "input": {
+                "type": "object",
+                "properties": {
+                    "job": {"type": "object"},
+                    "profile": {"type": "object"},
                 },
-                "profile": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "email": {"type": "string"},
-                        "linkedin_url": {"type": "string"},
-                        "resume_url": {"type": "string"},
-                        "skills": {"type": "array", "items": {"type": "string"}},
-                    },
-                },
+                "required": ["job", "profile"],
             },
-            "required": ["job", "profile"],
-        },
-        "output_schema": {
-            "type": "object",
-            "properties": {
-                "cover_letter": {
-                    "type": "string",
-                    "description": "Generated cover letter",
-                }
+            "output": {
+                "type": "object",
+                "properties": {"cover_letter": {"type": "string"}},
             },
-            "required": ["cover_letter"],
         },
-        "pricing": {"per_request": 0.05, "currency": "USD"},
+        "endpoint": "/v1/local/app_writer",
     },
-    "coach": {
-        "name": "coach",
-        "description": "Provides personalized career coaching, interview preparation, and professional development guidance",
-        "endpoint": "/v1/coach",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "role": {"type": "string", "description": "Target role or position"},
-                "company": {
-                    "type": "string",
-                    "description": "Target company (optional)",
+    {
+        "key": "coach",
+        "name": "Interview Coach",
+        "description": "Q&A + tips for interviews.",
+        "schema": {
+            "input": {
+                "type": "object",
+                "properties": {
+                    "role": {"type": "string"},
+                    "company": {"type": "string"},
                 },
-                "profile": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "email": {"type": "string"},
-                        "linkedin_url": {"type": "string"},
-                        "resume_url": {"type": "string"},
-                        "skills": {"type": "array", "items": {"type": "string"}},
-                    },
+                "required": ["role"],
+            },
+            "output": {
+                "type": "object",
+                "properties": {
+                    "questions": {"type": "array"},
+                    "tips": {"type": "array"},
                 },
             },
-            "required": ["role"],
         },
-        "output_schema": {
-            "type": "object",
-            "properties": {
-                "questions": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Interview questions for the role",
-                },
-                "tips": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Career tips and advice",
-                },
-            },
-            "required": ["questions", "tips"],
-        },
-        "pricing": {"per_request": 0.04, "currency": "USD"},
+        "endpoint": "/v1/local/coach",
     },
-}
+]
 
 
 async def ensure_agents_registered(coral: CoralClient) -> dict[str, str]:
     """
     Ensure all agents are registered with Coral platform.
 
+    Fetches list_agents(), checks by name, if missing calls register_agent()
+    and persists {key: agent_id} to .coral_agents.json
+
     Args:
         coral: CoralClient instance for registration
 
     Returns:
-        Dict mapping agent names to their agent IDs
+        Dict mapping agent keys to their agent IDs
 
     Raises:
         Exception: If agent registration fails
@@ -266,31 +131,53 @@ async def ensure_agents_registered(coral: CoralClient) -> dict[str, str]:
             # If cache is corrupted, start fresh
             agent_ids = {}
 
-    # Register each agent if not already cached
-    for agent_name, metadata in AGENT_METADATA.items():
-        if agent_name not in agent_ids:
-            try:
-                # Create combined schema for input/output
-                combined_schema = {
-                    "input": metadata["input_schema"],
-                    "output": metadata["output_schema"],
-                }
+    try:
+        # Fetch existing agents from Coral
+        existing_agents = await coral.list_agents()
+        existing_agent_names = {agent.get("name") for agent in existing_agents}
+    except Exception as e:
+        print(f"Warning: Could not fetch existing agents from Coral: {e}")
+        existing_agent_names = set()
 
-                result = await coral.register_agent(
-                    name=metadata["name"],
-                    description=metadata["description"],
-                    schema=combined_schema,
-                    endpoint=metadata["endpoint"],
-                    pricing=metadata.get("pricing"),
-                )
+    # Register each agent if not already registered
+    for agent in AGENTS:
+        agent_key = agent["key"]
+        agent_name = agent["name"]
 
-                agent_ids[agent_name] = result["agent_id"]
-                print(f"Registered agent '{agent_name}' with ID: {result['agent_id']}")
+        # Check if agent is already cached
+        if agent_key in agent_ids:
+            print(f"Agent '{agent_key}' already cached with ID: {agent_ids[agent_key]}")
+            continue
 
-            except Exception as e:
-                print(f"Failed to register agent '{agent_name}': {e}")
-                # Continue with other agents even if one fails
-                continue
+        # Check if agent exists on Coral server by name
+        if agent_name in existing_agent_names:
+            print(f"Agent '{agent_name}' already exists on Coral server")
+            # Find the agent_id from existing agents
+            for existing_agent in existing_agents:
+                if existing_agent.get("name") == agent_name:
+                    agent_ids[agent_key] = existing_agent.get("agent_id", "")
+                    break
+            continue
+
+        # Register new agent
+        try:
+            result = await coral.register_agent(
+                name=agent["name"],
+                description=agent["description"],
+                schema=agent["schema"],
+                endpoint=agent["endpoint"],
+                pricing=None,  # No pricing for local agents
+            )
+
+            agent_ids[agent_key] = result["agent_id"]
+            print(
+                f"Registered agent '{agent_key}' ({agent_name}) with ID: {result['agent_id']}"
+            )
+
+        except Exception as e:
+            print(f"Failed to register agent '{agent_key}': {e}")
+            # Continue with other agents even if one fails
+            continue
 
     # Save agent IDs to cache
     try:
@@ -302,30 +189,41 @@ async def ensure_agents_registered(coral: CoralClient) -> dict[str, str]:
     return agent_ids
 
 
-def get_agent_metadata(agent_name: str) -> dict[str, Any]:
+def get_agent_metadata(agent_key: str) -> dict[str, Any]:
     """
     Get metadata for a specific agent.
 
     Args:
-        agent_name: Name of the agent
+        agent_key: Key of the agent
 
     Returns:
         Agent metadata dictionary
 
     Raises:
-        KeyError: If agent name is not found
+        KeyError: If agent key is not found
     """
-    if agent_name not in AGENT_METADATA:
-        raise KeyError(f"Unknown agent: {agent_name}")
+    for agent in AGENTS:
+        if agent["key"] == agent_key:
+            return agent
 
-    return AGENT_METADATA[agent_name]
+    raise KeyError(f"Unknown agent: {agent_key}")
 
 
 def list_agent_names() -> list[str]:
     """
-    Get list of all registered agent names.
+    Get list of all registered agent keys.
 
     Returns:
-        List of agent names
+        List of agent keys
     """
-    return list(AGENT_METADATA.keys())
+    return [agent["key"] for agent in AGENTS]
+
+
+def list_agent_display_names() -> list[str]:
+    """
+    Get list of all registered agent display names.
+
+    Returns:
+        List of agent display names
+    """
+    return [agent["name"] for agent in AGENTS]

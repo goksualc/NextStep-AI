@@ -9,6 +9,7 @@ import pytest
 from app.agents_registry import (
     ensure_agents_registered,
     get_agent_metadata,
+    list_agent_display_names,
     list_agent_names,
 )
 from app.coral_client import CoralClient
@@ -107,9 +108,11 @@ def test_agent_metadata():
     """Test agent metadata retrieval."""
     # Test getting specific agent metadata
     metadata = get_agent_metadata("cv_analyzer")
-    assert metadata["name"] == "cv_analyzer"
-    assert "input_schema" in metadata
-    assert "output_schema" in metadata
+    assert metadata["name"] == "CV Analyzer"
+    assert metadata["key"] == "cv_analyzer"
+    assert "schema" in metadata
+    assert "input" in metadata["schema"]
+    assert "output" in metadata["schema"]
 
     # Test getting non-existent agent
     try:
@@ -126,6 +129,21 @@ def test_list_agent_names():
 
     assert len(names) == 5
     assert all(name in expected_names for name in names)
+
+
+def test_list_agent_display_names():
+    """Test listing all agent display names."""
+    display_names = list_agent_display_names()
+    expected_names = [
+        "CV Analyzer",
+        "Job Scout",
+        "Matcher",
+        "Application Writer",
+        "Interview Coach",
+    ]
+
+    assert len(display_names) == 5
+    assert all(name in expected_names for name in display_names)
 
 
 @pytest.mark.asyncio
