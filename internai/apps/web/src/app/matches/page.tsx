@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, MatchCard } from '@/components';
+import { Card, Button, MatchCard, ProgressBar, SkillChip } from '@/components';
 import { useUserStore } from '@/lib/store';
 import { matchJobs, getSampleJobs, APIError } from '@/lib/api';
 import { JobItem, MatchResult } from '@/lib/types';

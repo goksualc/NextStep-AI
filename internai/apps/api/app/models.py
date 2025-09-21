@@ -54,10 +54,23 @@ class CoachRequest(BaseModel):
     profile: UserProfile | None = Field(None, description="User profile (optional)")
 
 
+class AnalyzeRequest(BaseModel):
+    """Request for profile analysis."""
+
+    text: str | None = Field(None, description="Resume text to analyze")
+    resume_text: str | None = Field(
+        None, description="Alternative field for resume text"
+    )
+
+
 class AnalyzeResponse(BaseModel):
     """Response from profile analysis."""
 
     skills: list[str] = Field(..., description="Extracted skills from profile")
+    highlights: list[str] = Field(
+        default_factory=list, description="Key highlights from the profile"
+    )
+    profile_text: str = Field("", description="Summarized profile text")
 
 
 class WriteResponse(BaseModel):
@@ -66,8 +79,17 @@ class WriteResponse(BaseModel):
     cover_letter: str = Field(..., description="Generated cover letter")
 
 
+class QuestionItem(BaseModel):
+    """Individual interview question with guidance."""
+
+    q: str = Field(..., description="The interview question")
+    ideal_answer: str = Field(..., description="Guidance for answering the question")
+
+
 class CoachResponse(BaseModel):
     """Response from career coaching."""
 
-    questions: list[str] = Field(..., description="Interview questions for the role")
+    questions: list[QuestionItem] = Field(
+        ..., description="Interview questions with guidance"
+    )
     tips: list[str] = Field(..., description="Career tips and advice")

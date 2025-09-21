@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
 import { Modal } from './Modal';
+import { ProgressBar, SkillChip } from './ui';
 import { writeCoverLetter, APIError } from '@/lib/api';
 import { useUserStore } from '@/lib/store';
 import { JobItem } from '@/lib/types';
@@ -97,21 +98,25 @@ export const MatchCard: React.FC<MatchCardProps> = ({
     <>
       <Card className="hover:shadow-soft-lg transition-shadow duration-200">
         <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                {title}
-              </h3>
-              <p className="text-lg text-gray-600">{company}</p>
-            </div>
-            <div className="text-right">
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(score)}`}>
-                {score}%
-              </div>
-              <p className="text-xs text-gray-500 mt-1">{getScoreLabel(score)}</p>
-            </div>
-          </div>
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                        {title}
+                      </h3>
+                      <p className="text-lg text-gray-600">{company}</p>
+                    </div>
+                  </div>
+
+                  {/* Match Score */}
+                  <div className="mb-4">
+                    <ProgressBar
+                      value={score}
+                      size="md"
+                      showLabel={true}
+                      label="Match Score"
+                    />
+                  </div>
 
           {/* Details */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -138,24 +143,24 @@ export const MatchCard: React.FC<MatchCardProps> = ({
             </p>
           )}
 
-          {/* Missing Skills */}
-          {missingSkills.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700">
-                Skills to develop:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {missingSkills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+                  {/* Missing Skills */}
+                  {missingSkills.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">
+                        Skills to develop:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {missingSkills.map((skill, index) => (
+                          <SkillChip
+                            key={index}
+                            skill={skill}
+                            type="missing"
+                            size="sm"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
           {/* Actions */}
           <div className="flex space-x-3 pt-2">

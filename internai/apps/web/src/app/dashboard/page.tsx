@@ -1,22 +1,33 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Button, FileDrop, Input } from '@/components';
+import { Card, Button, FileDrop, Input, Textarea, SkillChip } from '@/components';
 import { useUserStore } from '@/lib/store';
 import { analyzeProfile, getSampleJobs, matchJobs, APIError } from '@/lib/api';
 
 export default function Dashboard() {
-  const { profile, setSkills, setMissingSkills, setLoading, setError, isLoading, error } = useUserStore();
+  const {
+    profile,
+    setSkills,
+    setMissingSkills,
+    setHighlights,
+    setProfileText,
+    setLoading,
+    setError,
+    isLoading,
+    error
+  } = useUserStore();
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [resumeText, setResumeText] = useState('');
 
   const handleFileUpload = (file: File) => {
     setSelectedFile(file);
   };
 
   const handleAnalyzeProfile = async () => {
-    if (!linkedinUrl && !selectedFile) {
-      setError('Please provide either a LinkedIn URL or upload a resume');
+    if (!resumeText.trim()) {
+      setError('Please provide resume text to analyze');
       return;
     }
 
@@ -25,11 +36,12 @@ export default function Dashboard() {
 
     try {
       const result = await analyzeProfile({
-        linkedinUrl: linkedinUrl || undefined,
-        resumeFile: selectedFile || undefined,
+        text: resumeText,
       });
 
       setSkills(result.skills);
+      setHighlights(result.highlights);
+      setProfileText(result.profile_text);
 
       // Get missing skills by running a sample match
       try {
@@ -49,8 +61,7 @@ export default function Dashboard() {
       }
 
       // Clear form
-      setLinkedinUrl('');
-      setSelectedFile(null);
+      setResumeText('');
     } catch (err) {
       if (err instanceof APIError) {
         setError(`Analysis failed: ${err.message}`);
@@ -168,36 +179,32 @@ export default function Dashboard() {
                 Analyze Your Profile
               </h3>
               <p className="text-gray-600">
-                Upload your resume or provide your LinkedIn URL to extract skills and get better matches.
+                Paste your resume text to extract skills and get personalized job matches.
               </p>
             </div>
 
             <div className="space-y-4">
-              <Input
-                label="LinkedIn Profile URL (Optional)"
-                type="url"
-                placeholder="https://linkedin.com/in/yourprofile"
-                value={linkedinUrl}
-                onChange={(e) => setLinkedinUrl(e.target.value)}
-                helperText="We&apos;ll analyze your LinkedIn profile to extract relevant skills"
-              />
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Or Upload Resume (Optional)
+                  Resume Text
                 </label>
-                <FileDrop
-                  onFileSelect={handleFileUpload}
-                  accept=".pdf,.doc,.docx"
-                  maxSize={5}
+                <Textarea
+                  placeholder="Paste your resume content here... Include your experience, skills, education, and achievements."
+                  value={resumeText}
+                  onChange={(e) => setResumeText(e.target.value)}
+                  rows={8}
+                  className="w-full"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  We&apos;ll analyze this text to extract your skills and highlights using AI.
+                </p>
               </div>
 
               <Button
                 onClick={handleAnalyzeProfile}
                 size="lg"
                 className="w-full"
-                disabled={isLoading || (!linkedinUrl && !selectedFile)}
+                disabled={isLoading || !resumeText.trim()}
               >
                 {isLoading ? (
                   <>
@@ -251,12 +258,36 @@ export default function Dashboard() {
             </h3>
             <div className="flex flex-wrap gap-2">
               {profile.skills.map((skill, index) => (
-                <span
+                <SkillChip
                   key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800"
-                >
-                  {skill}
-                </span>
+                  skill={skill}
+                  type="skill"
+                  size="md"
+                />
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Highlights Display */}
+      {profile.highlights && profile.highlights.length > 0 && (
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <span className="text-blue-600 text-sm font-semibold">⭐</span>
+              </div>
+              <h3 className="text-xl font-semibold text-blue-900">
+                Key Highlights
+              </h3>
+            </div>
+            <div className="space-y-2">
+              {profile.highlights.map((highlight, index) => (
+                <div key={index} className="flex items-start space-x-2">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <p className="text-blue-800 text-sm">{highlight}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -280,12 +311,12 @@ export default function Dashboard() {
             </p>
             <div className="flex flex-wrap gap-2">
               {profile.missing_skills.map((skill, index) => (
-                <span
+                <SkillChip
                   key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 border border-orange-200"
-                >
-                  {skill}
-                </span>
+                  skill={skill}
+                  type="missing"
+                  size="md"
+                />
               ))}
             </div>
             <div className="text-xs text-orange-600">

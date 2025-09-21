@@ -1,10 +1,47 @@
 'use client';
 
-import React from 'react';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/Button';
+import React, { useState } from 'react';
+import { Card, Button, Input } from '@/components';
+import { useUserStore } from '@/lib/store';
+import { coachPrep, APIError } from '@/lib/api';
+import { CoachResponse } from '@/lib/types';
 
 export default function Coach() {
+  const { profile } = useUserStore();
+  const [role, setRole] = useState('');
+  const [company, setCompany] = useState('');
+  const [coaching, setCoaching] = useState<CoachResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
+
+  const handleGetCoaching = async () => {
+    if (!role.trim()) {
+      setError('Please enter a role');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await coachPrep({
+        role: role.trim(),
+        company: company.trim() || undefined,
+        profile: profile
+      });
+
+      setCoaching(result);
+    } catch (err) {
+      if (err instanceof APIError) {
+        setError(`Coaching failed: ${err.message}`);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -15,13 +52,123 @@ export default function Coach() {
             Get personalized coaching and interview preparation
           </p>
         </div>
-        <Button>
-          🎯 Get Coaching
-        </Button>
       </div>
 
+      {/* Input Form */}
+      <Card>
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-gray-900">
+            Get Interview Coaching
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Target Role"
+              placeholder="e.g., Software Engineering Intern"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+            />
+            <Input
+              label="Company (Optional)"
+              placeholder="e.g., TechCorp"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+            />
+          </div>
+
+          <Button
+            onClick={handleGetCoaching}
+            disabled={isLoading || !role.trim()}
+            size="lg"
+            className="w-full md:w-auto"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                Generating...
+              </>
+            ) : (
+              '🎯 Get Coaching'
+            )}
+          </Button>
+        </div>
+      </Card>
+
+      {/* Error Display */}
+      {error && (
+        <Card className="bg-red-50 border-red-200">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Coaching Results */}
+      {coaching && (
+        <div className="space-y-6">
+          {/* Questions */}
+          <Card>
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Interview Questions & Answers
+              </h3>
+              <div className="space-y-4">
+                {coaching.questions.map((question, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-medium text-gray-900 mb-2">
+                        {question.q}
+                      </h4>
+                      <button
+                        onClick={() => setExpandedQuestion(expandedQuestion === index ? null : index)}
+                        className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+                      >
+                        {expandedQuestion === index ? 'Hide Answer' : 'Show Answer'}
+                      </button>
+                    </div>
+                    {expandedQuestion === index && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          <strong>Ideal Answer:</strong> {question.ideal_answer}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          {/* Tips */}
+          <Card>
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Interview Tips
+              </h3>
+              <div className="space-y-3">
+                {coaching.tips.map((tip, index) => (
+                  <div key={index} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                    <span className="text-green-600 mt-1">💡</span>
+                    <p className="text-sm text-green-800">{tip}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Empty State */}
-      <Card padding="lg" className="text-center">
+      {!coaching && !isLoading && (
+        <Card padding="lg" className="text-center">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Icon */}
           <div className="w-32 h-32 bg-gradient-to-br from-primary-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto">
@@ -207,6 +354,7 @@ export default function Coach() {
           </div>
         </div>
       </Card>
+      )}
     </div>
   );
 }

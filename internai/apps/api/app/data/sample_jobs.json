@@ -1,0 +1,182 @@
+[
+  {
+    "id": "1",
+    "source": "linkedin",
+    "title": "AI/ML Engineering Intern",
+    "company": "TechCorp AI",
+    "location": "New York, NY",
+    "url": "https://linkedin.com/jobs/ai-ml-intern-techcorp",
+    "desc": "Join our AI/ML team to work on cutting-edge machine learning models and data pipelines. Experience with Python, TensorFlow, and PyTorch preferred. You'll work on NLP models, computer vision systems, and MLOps infrastructure."
+  },
+  {
+    "id": "2",
+    "source": "indeed",
+    "title": "Backend Developer Intern",
+    "company": "StartupXYZ",
+    "location": "Remote",
+    "url": "https://indeed.com/jobs/backend-intern-startupxyz",
+    "desc": "Develop and maintain robust backend services using Python, FastAPI, and PostgreSQL. Opportunity to work on scalable microservices, REST APIs, and cloud infrastructure. Experience with Docker and Kubernetes a plus."
+  },
+  {
+    "id": "3",
+    "source": "company_website",
+    "title": "Data Science Intern",
+    "company": "DataInsights Co.",
+    "location": "San Francisco, CA",
+    "url": "https://datainsights.com/careers/data-science-intern",
+    "desc": "Assist in data collection, analysis, and visualization. Strong statistical skills and experience with Pandas/NumPy required. Work on A/B testing, predictive modeling, and business intelligence dashboards using Python and SQL."
+  },
+  {
+    "id": "4",
+    "source": "linkedin",
+    "title": "DevOps Engineering Intern",
+    "company": "CloudBuilders Inc.",
+    "location": "Remote",
+    "url": "https://linkedin.com/jobs/devops-intern-cloudbuilders",
+    "desc": "Work with our DevOps team to automate deployment pipelines and manage cloud infrastructure (AWS, Docker, Kubernetes). Experience with CI/CD, Terraform, and monitoring tools like Prometheus and Grafana."
+  },
+  {
+    "id": "5",
+    "source": "indeed",
+    "title": "Cybersecurity Intern",
+    "company": "SecureNet Solutions",
+    "location": "Austin, TX",
+    "url": "https://indeed.com/jobs/cybersecurity-intern-securenet",
+    "desc": "Gain hands-on experience in network security, vulnerability assessment, and incident response. Knowledge of Linux, scripting, and security tools like Wireshark and Metasploit is a plus. Work on penetration testing and security audits."
+  },
+  {
+    "id": "6",
+    "source": "company_website",
+    "title": "Machine Learning Research Intern",
+    "company": "Innovate AI Labs",
+    "location": "Remote",
+    "desc": "Conduct research on novel machine learning algorithms and contribute to academic publications. Strong mathematical background and Python skills required. Work on deep learning, reinforcement learning, and computer vision research projects.",
+    "url": "https://innovate-ai.com/research-intern"
+  },
+  {
+    "id": "7",
+    "source": "linkedin",
+    "title": "Full Stack Developer Intern",
+    "company": "WebSolutions Pro",
+    "location": "Seattle, WA",
+    "url": "https://linkedin.com/jobs/fullstack-intern-websolutions",
+    "desc": "Build responsive web applications using React, Node.js, and MongoDB. Collaborate with design and product teams. Experience with TypeScript, GraphQL, and modern frontend frameworks preferred. Work on user-facing features and API development."
+  },
+  {
+    "id": "8",
+    "source": "indeed",
+    "title": "Developer Relations Intern",
+    "company": "API Connect",
+    "location": "Remote",
+    "url": "https://indeed.com/jobs/devrel-intern-apiconnect",
+    "desc": "Engage with the developer community, create technical content, and support API users. Excellent communication skills required. Work on documentation, tutorials, and developer tools. Experience with technical writing and community management preferred."
+  },
+  {
+    "id": "9",
+    "source": "company_website",
+    "title": "Security Engineering Intern",
+    "company": "GuardDog Security",
+    "location": "Boston, MA",
+    "url": "https://guarddog.com/security-engineering-intern",
+    "desc": "Assist in developing and implementing security measures for our software products. Experience with cloud security (GCP, Azure) is beneficial. Work on threat modeling, security code reviews, and security automation tools."
+  },
+  {
+    "id": "10",
+    "source": "linkedin",
+    "title": "Data Engineering Intern",
+    "company": "BigData Corp",
+    "location": "Remote",
+    "url": "https://linkedin.com/jobs/data-eng-intern-bigdata",
+    "desc": "Design and build scalable data pipelines using Apache Spark, Kafka, and cloud data warehouses. Strong SQL skills are essential. Work on ETL processes, data modeling, and real-time streaming data processing."
+  },
+  {
+    "id": "11",
+    "source": "indeed",
+    "title": "Web3 Developer Intern",
+    "company": "Blockchain Innovations",
+    "location": "Remote",
+    "url": "https://indeed.com/jobs/web3-intern-blockchain",
+    "desc": "Work on decentralized applications (dApps) using Solidity, Web3.js, and blockchain technologies. Experience with Ethereum, smart contracts, and DeFi protocols preferred. Contribute to NFT platforms and blockchain infrastructure."
+  },
+  {
+    "id": "12",
+    "source": "company_website",
+    "title": "Frontend Developer Intern",
+    "company": "UX Masters",
+    "location": "Portland, OR",
+    "url": "https://uxmasters.com/frontend-intern",
+    "desc": "Create beautiful and responsive user interfaces using React, TypeScript, and modern CSS. Work closely with UX designers. Experience with component libraries, state management (Redux), and testing frameworks preferred."
+  },
+  {
+    "id": "13",
+    "source": "linkedin",
+    "title": "Mobile Developer Intern",
+    "company": "AppCraft",
+    "location": "Denver, CO",
+    "url": "https://linkedin.com/jobs/mobile-intern-appcraft",
+    "desc": "Develop mobile applications for iOS and Android using React Native or Flutter. Experience with mobile UI/UX design principles and app store deployment. Work on cross-platform mobile solutions and native integrations."
+  },
+  {
+    "id": "14",
+    "source": "indeed",
+    "title": "Cloud Infrastructure Intern",
+    "company": "CloudScale",
+    "location": "Remote",
+    "url": "https://indeed.com/jobs/cloud-intern-cloudscale",
+    "desc": "Work on cloud infrastructure automation and management using AWS, Terraform, and Kubernetes. Experience with Infrastructure as Code, monitoring, and cost optimization. Contribute to multi-cloud architecture and DevOps practices."
+  },
+  {
+    "id": "15",
+    "source": "company_website",
+    "title": "Product Management Intern",
+    "company": "TechStart",
+    "location": "Chicago, IL",
+    "url": "https://techstart.com/product-intern",
+    "desc": "Work with product managers on feature planning, user research, and roadmap development. Strong analytical skills and experience with data analysis tools preferred. Collaborate with engineering and design teams on product strategy."
+  },
+  {
+    "id": "16",
+    "source": "linkedin",
+    "title": "QA Automation Intern",
+    "company": "QualityFirst",
+    "location": "Remote",
+    "url": "https://linkedin.com/jobs/qa-intern-qualityfirst",
+    "desc": "Develop automated testing frameworks and test cases using Python, Selenium, and pytest. Experience with API testing and continuous integration. Work on test automation, bug tracking, and quality assurance processes."
+  },
+  {
+    "id": "17",
+    "source": "indeed",
+    "title": "Game Developer Intern",
+    "company": "PlayGames Studio",
+    "location": "Los Angeles, CA",
+    "url": "https://indeed.com/jobs/game-dev-intern-playgames",
+    "desc": "Work on game development using Unity, C#, and game design principles. Experience with 3D modeling, animation, and game physics preferred. Contribute to mobile and PC game projects, including gameplay mechanics and UI systems."
+  },
+  {
+    "id": "18",
+    "source": "company_website",
+    "title": "AR/VR Developer Intern",
+    "company": "Immersive Tech",
+    "location": "Seattle, WA",
+    "url": "https://immersivetech.com/arvr-intern",
+    "desc": "Develop augmented and virtual reality applications using Unity, Unreal Engine, and AR/VR SDKs. Experience with 3D graphics, spatial computing, and user interaction design. Work on immersive experiences and spatial computing solutions."
+  },
+  {
+    "id": "19",
+    "source": "linkedin",
+    "title": "FinTech Developer Intern",
+    "company": "FinanceFlow",
+    "location": "New York, NY",
+    "url": "https://linkedin.com/jobs/fintech-intern-financeflow",
+    "desc": "Work on financial technology solutions including payment processing, trading algorithms, and financial data analysis. Experience with Python, financial APIs, and regulatory compliance preferred. Contribute to fintech infrastructure and trading systems."
+  },
+  {
+    "id": "20",
+    "source": "indeed",
+    "title": "EdTech Developer Intern",
+    "company": "LearnTech",
+    "location": "Remote",
+    "url": "https://indeed.com/jobs/edtech-intern-learntech",
+    "desc": "Develop educational technology platforms and learning management systems. Experience with React, Node.js, and educational content delivery. Work on interactive learning tools, assessment systems, and student engagement features."
+  }
+]

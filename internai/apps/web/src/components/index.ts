@@ -7,3 +7,6 @@ export { Sidebar } from './Sidebar';
 export { TopBar } from './TopBar';
 export { Modal } from './Modal';
 export { Input } from './Input';
+
+// UI Components
+export { Modal as UIModal, ProgressBar, SkillChip } from './ui';

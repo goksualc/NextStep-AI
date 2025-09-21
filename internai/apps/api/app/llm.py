@@ -96,14 +96,18 @@ async def interview_coach(role: str, company: str, skills: list[str]) -> dict:
     Returns:
         Dictionary with questions and tips
     """
-    system_prompt = """You are a practical interview coach specializing in tech internships and entry-level positions.
+    system_prompt = """Return JSON {questions:[{q,ideal_answer}], tips:[...]}
+
+You are a practical interview coach specializing in tech internships and entry-level positions.
 Your coaching should be:
 - Specific to the role and company
 - Practical and actionable
 - Focused on common internship interview scenarios
 - Include both technical and behavioral aspects
 
-Provide exactly 5 targeted interview questions with brief answer guidance, then 3 improvement tips."""
+Format questions as: {"q": "question text", "ideal_answer": "brief guidance"}
+Provide exactly 5 targeted interview questions and 3 improvement tips.
+Return only valid JSON, no additional text."""
 
     skills_text = ", ".join(skills) if skills else "various technical skills"
 
@@ -111,7 +115,7 @@ Provide exactly 5 targeted interview questions with brief answer guidance, then 
 COMPANY: {company}
 SKILLS: {skills_text}
 
-Provide 5 targeted interview questions with short ideal answer outlines, then 3 practical improvement tips for this specific role and company combination."""
+Generate interview coaching for this specific role and company combination."""
 
     try:
         response = mistral.chat.complete(
@@ -120,13 +124,88 @@ Provide 5 targeted interview questions with short ideal answer outlines, then 3 
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            max_tokens=1000,
+            max_tokens=1200,
             temperature=0.6,
         )
 
         content = response.choices[0].message.content.strip()
 
-        # Parse the response to extract questions and tips
+        # Try to parse JSON response
+        try:
+            # Clean the response to extract JSON
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0]
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0]
+
+            # Remove any leading/trailing non-JSON text
+            content = content.strip()
+            if content.startswith("{"):
+                result = json.loads(content)
+
+                # Ensure proper format
+                questions = []
+                if "questions" in result:
+                    for q in result["questions"]:
+                        if isinstance(q, dict) and "q" in q:
+                            questions.append(
+                                {
+                                    "q": q["q"],
+                                    "ideal_answer": q.get(
+                                        "ideal_answer",
+                                        "Provide a specific example from your experience.",
+                                    ),
+                                }
+                            )
+                        elif isinstance(q, str):
+                            questions.append(
+                                {
+                                    "q": q,
+                                    "ideal_answer": "Provide a specific example from your experience.",
+                                }
+                            )
+
+                tips = result.get("tips", [])
+                if isinstance(tips, list):
+                    tips = [str(tip) for tip in tips if tip]
+
+                return {
+                    "questions": questions[:5],  # Ensure max 5 questions
+                    "tips": tips[:3],  # Ensure max 3 tips
+                }
+        except json.JSONDecodeError:
+            # If JSON parsing fails, try repair prompt
+            repair_prompt = f"""Fix this JSON response for interview coaching:
+
+{content}
+
+Return valid JSON with format: {{"questions":[{{"q":"question","ideal_answer":"guidance"}}],"tips":["tip1","tip2"]}}"""
+
+            try:
+                repair_response = mistral.chat.complete(
+                    model="mistral-medium-2508",
+                    messages=[{"role": "user", "content": repair_prompt}],
+                    max_tokens=800,
+                    temperature=0.3,
+                )
+
+                repair_content = repair_response.choices[0].message.content.strip()
+                if "```json" in repair_content:
+                    repair_content = repair_content.split("```json")[1].split("```")[0]
+                elif "```" in repair_content:
+                    repair_content = repair_content.split("```")[1].split("```")[0]
+
+                repair_content = repair_content.strip()
+                if repair_content.startswith("{"):
+                    result = json.loads(repair_content)
+                    return {
+                        "questions": result.get("questions", [])[:5],
+                        "tips": result.get("tips", [])[:3],
+                    }
+            except Exception:
+                pass
+
+        # Fallback to text parsing
         return _parse_coaching_response(content)
 
     except Exception as e:
@@ -134,11 +213,26 @@ Provide 5 targeted interview questions with short ideal answer outlines, then 3 
         # Fallback to template-based response
         return {
             "questions": [
-                f"Tell me about your experience with {role} and what interests you most about this field.",
-                f"What do you know about {company} and why do you want to work here?",
-                "Describe a challenging project you've worked on and how you overcame obstacles.",
-                f"Where do you see yourself in 5 years, and how does this {role} role fit into your career goals?",
-                "Do you have any questions about the role or company culture?",
+                {
+                    "q": f"Tell me about your experience with {role} and what interests you most about this field.",
+                    "ideal_answer": "Focus on specific projects, technologies, or experiences that demonstrate your passion and relevant skills.",
+                },
+                {
+                    "q": f"What do you know about {company} and why do you want to work here?",
+                    "ideal_answer": "Research their products, mission, recent news, and company culture. Show genuine interest and alignment with their values.",
+                },
+                {
+                    "q": "Describe a challenging project you've worked on and how you overcame obstacles.",
+                    "ideal_answer": "Use the STAR method: describe the Situation, Task, Action you took, and Result achieved. Show problem-solving skills.",
+                },
+                {
+                    "q": f"Where do you see yourself in 5 years, and how does this {role} role fit into your career goals?",
+                    "ideal_answer": "Show long-term thinking while demonstrating how this role is a stepping stone toward your career aspirations.",
+                },
+                {
+                    "q": "Do you have any questions about the role or company culture?",
+                    "ideal_answer": "Ask thoughtful questions about team dynamics, growth opportunities, or specific projects you'd work on.",
+                },
             ],
             "tips": [
                 f"Research {company} thoroughly - understand their products, mission, and recent news.",

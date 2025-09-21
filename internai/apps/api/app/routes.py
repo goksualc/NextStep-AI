@@ -10,13 +10,16 @@ from pathlib import Path
 import numpy as np
 from fastapi import APIRouter
 
-from .llm import draft_cover_letter, extract_skills_from_text, interview_coach
+from .cv_parser import analyze_profile
+from .llm import draft_cover_letter, interview_coach
 from .models import (
+    AnalyzeRequest,
     AnalyzeResponse,
     CoachRequest,
     CoachResponse,
     JobItem,
     MatchResult,
+    QuestionItem,
     UserProfile,
     WriteRequest,
     WriteResponse,
@@ -52,18 +55,12 @@ _sample_jobs_cache = None
 
 
 def _load_sample_jobs():
-    """Load sample jobs from the web app's public directory."""
+    """Load sample jobs from the API's data directory."""
     global _sample_jobs_cache
     if _sample_jobs_cache is None:
         try:
-            # Path to the sample jobs JSON file in the web app
-            sample_jobs_path = (
-                Path(__file__).parent.parent.parent.parent
-                / "apps"
-                / "web"
-                / "public"
-                / "sample_jobs.json"
-            )
+            # Path to the sample jobs JSON file in the API data directory
+            sample_jobs_path = Path(__file__).parent / "data" / "sample_jobs.json"
             with open(sample_jobs_path) as f:
                 _sample_jobs_cache = json.load(f)
         except Exception as e:
@@ -87,16 +84,24 @@ if EmbeddingsClient and settings.MISTRAL_API_KEY:
 
 # Curated set of skill keywords for missing skills detection
 SKILL_KEYWORDS = {
+    # Programming Languages
     "python",
+    "java",
     "javascript",
     "typescript",
-    "java",
     "c++",
     "c#",
     "go",
     "rust",
     "swift",
     "kotlin",
+    "php",
+    "ruby",
+    "scala",
+    "r",
+    "matlab",
+    "sql",
+    # Frameworks & Libraries
     "react",
     "vue",
     "angular",
@@ -106,52 +111,102 @@ SKILL_KEYWORDS = {
     "flask",
     "fastapi",
     "spring",
-    "sql",
-    "postgresql",
-    "mysql",
-    "mongodb",
-    "redis",
-    "elasticsearch",
-    "aws",
-    "azure",
-    "gcp",
-    "docker",
-    "kubernetes",
-    "terraform",
-    "jenkins",
-    "gitlab",
-    "machine learning",
-    "deep learning",
+    "laravel",
+    "rails",
     "tensorflow",
     "pytorch",
     "scikit-learn",
     "pandas",
     "numpy",
-    "graphql",
-    "rest api",
-    "microservices",
+    "matplotlib",
+    "seaborn",
+    # Databases
+    "postgresql",
+    "mysql",
+    "mongodb",
+    "redis",
+    "elasticsearch",
+    "sqlite",
+    "cassandra",
+    "dynamodb",
+    "neo4j",
+    # Cloud Platforms
+    "aws",
+    "azure",
+    "gcp",
+    "google cloud",
+    "amazon web services",
+    "microsoft azure",
+    "cloudflare",
+    # DevOps Tools
+    "docker",
+    "kubernetes",
+    "terraform",
+    "jenkins",
+    "gitlab",
+    "github actions",
+    "ansible",
+    "prometheus",
+    "grafana",
+    "elk stack",
+    # AI/ML
+    "machine learning",
+    "deep learning",
+    "neural networks",
+    "nlp",
+    "natural language processing",
+    "computer vision",
+    "reinforcement learning",
+    "data science",
+    "data analysis",
+    "mlops",
+    # Blockchain
+    "blockchain",
+    "web3",
+    "solidity",
+    "ethereum",
+    "smart contracts",
+    "defi",
+    "nft",
+    "cairo",
+    "starknet",
+    "zkproofs",
+    "zero knowledge",
+    # Security
+    "cybersecurity",
+    "penetration testing",
+    "vulnerability assessment",
+    "security auditing",
+    "cryptography",
+    "network security",
+    # DevRel
+    "developer relations",
+    "technical writing",
+    "community management",
+    "developer advocacy",
+    "content creation",
+    "documentation",
+    # Data Engineering
+    "data engineering",
+    "etl",
+    "data pipelines",
+    "apache spark",
+    "kafka",
+    "airflow",
+    "data warehousing",
+    "big data",
+    # General
+    "git",
+    "linux",
+    "bash",
     "agile",
     "scrum",
     "devops",
     "ci/cd",
-    "linux",
-    "bash",
-    "git",
-    "jira",
-    "confluence",
-    "figma",
-    "photoshop",
-    "data analysis",
-    "statistics",
-    "r",
-    "matlab",
-    "tableau",
-    "power bi",
-    "cybersecurity",
-    "penetration testing",
-    "blockchain",
-    "web3",
-    "solidity",
+    "rest api",
+    "graphql",
+    "microservices",
+    "api development",
 }
 
 
@@ -167,51 +222,43 @@ async def get_sample_jobs():
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_profile(profile: UserProfile) -> AnalyzeResponse:
+async def analyze_profile_endpoint(request: AnalyzeRequest) -> AnalyzeResponse:
     """
-    Analyze user profile and extract skills from resume/LinkedIn.
+    Analyze user profile and extract skills from resume text.
 
     Args:
-        profile: User profile information
+        request: AnalyzeRequest with text or resume_text
 
     Returns:
-        AnalyzeResponse: Extracted skills
+        AnalyzeResponse: Extracted skills, highlights, and profile text
     """
     try:
-        # Build text from profile data for analysis
-        profile_text = ""
+        # Get text from either field
+        text = request.text or request.resume_text or ""
 
-        if profile.name:
-            profile_text += f"Name: {profile.name}\n"
-        if profile.email:
-            profile_text += f"Email: {profile.email}\n"
-        if profile.linkedin_url:
-            profile_text += f"LinkedIn: {profile.linkedin_url}\n"
-        if profile.resume_url:
-            profile_text += f"Resume: {profile.resume_url}\n"
-        if profile.skills:
-            profile_text += f"Skills: {', '.join(profile.skills)}\n"
+        if not text.strip():
+            return AnalyzeResponse(
+                skills=["Python", "JavaScript", "Git", "Problem Solving"],
+                highlights=["Strong analytical skills", "Team collaboration"],
+                profile_text="Basic technical profile",
+            )
 
-        # Use LLM to extract skills if we have meaningful text
-        if profile_text.strip():
-            skills = await extract_skills_from_text(profile_text)
-            if skills:
-                return AnalyzeResponse(skills=skills)
+        # Use CV parser for comprehensive analysis
+        result = await analyze_profile(text)
 
-        # Fallback to existing skills or default
-        if profile.skills:
-            return AnalyzeResponse(skills=profile.skills)
-
-        # Default fallback
         return AnalyzeResponse(
-            skills=["Python", "JavaScript", "Git", "Problem Solving"]
+            skills=result["skills"],
+            highlights=result["highlights"],
+            profile_text=result["profile_text"],
         )
 
     except Exception as e:
         print(f"Error in profile analysis: {e}")
-        # Return existing skills or default fallback
+        # Fallback response
         return AnalyzeResponse(
-            skills=profile.skills or ["Python", "JavaScript", "Git", "Problem Solving"]
+            skills=["Python", "JavaScript", "Git", "Problem Solving"],
+            highlights=["Strong analytical skills", "Team collaboration"],
+            profile_text="Basic technical profile",
         )
 
 
@@ -223,19 +270,11 @@ def _build_profile_text(profile: UserProfile) -> str:
     if profile.skills:
         parts.append(f"Skills: {', '.join(profile.skills)}")
 
-    # Add LinkedIn profile reference
-    if profile.linkedin_url:
-        parts.append(f"LinkedIn: {profile.linkedin_url}")
-
     # Add name and email for context
     if profile.name:
         parts.append(f"Name: {profile.name}")
     if profile.email:
         parts.append(f"Email: {profile.email}")
-
-    # Add resume reference
-    if profile.resume_url:
-        parts.append(f"Resume: {profile.resume_url}")
 
     return " | ".join(parts)
 
@@ -258,22 +297,31 @@ def _find_missing_skills(profile: UserProfile, job: JobItem) -> list[str]:
     if not profile.skills or not job.desc:
         return []
 
-    # Check each skill keyword against job description
-    missing_skills = []
+    # Normalize profile skills for comparison
+    profile_skills_lower = {skill.lower() for skill in profile.skills}
     job_desc_lower = job.desc.lower()
 
+    missing_skills = []
+
+    # Check each skill keyword against job description
     for skill in SKILL_KEYWORDS:
+        skill_lower = skill.lower()
+
         # Check if skill appears in job description
-        if skill.lower() in job_desc_lower:
-            # Check if user doesn't have this skill
-            if not any(
-                skill.lower() in profile_skill.lower()
-                for profile_skill in profile.skills
-            ):
+        if skill_lower in job_desc_lower:
+            # Check if user doesn't have this skill (exact match or partial match)
+            has_skill = False
+            for profile_skill in profile_skills_lower:
+                if skill_lower in profile_skill or profile_skill in skill_lower:
+                    has_skill = True
+                    break
+
+            if not has_skill:
                 missing_skills.append(skill.title())
 
-    # Return top 5 missing skills
-    return missing_skills[:5]
+    # Remove duplicates and return top 5 missing skills
+    unique_missing = list(dict.fromkeys(missing_skills))
+    return unique_missing[:5]
 
 
 @router.post("/match", response_model=list[MatchResult])
@@ -407,25 +455,63 @@ async def get_coaching(request: CoachRequest) -> CoachResponse:
         coaching_data = await interview_coach(
             request.role, request.company or "", skills
         )
-        return CoachResponse(
-            questions=coaching_data["questions"], tips=coaching_data["tips"]
-        )
+
+        # Convert questions to QuestionItem objects
+        question_items = []
+        for q in coaching_data["questions"]:
+            if isinstance(q, dict):
+                question_items.append(
+                    QuestionItem(
+                        q=q.get("q", ""),
+                        ideal_answer=q.get(
+                            "ideal_answer",
+                            "Provide a specific example from your experience.",
+                        ),
+                    )
+                )
+            else:
+                question_items.append(
+                    QuestionItem(
+                        q=str(q),
+                        ideal_answer="Provide a specific example from your experience.",
+                    )
+                )
+
+        return CoachResponse(questions=question_items, tips=coaching_data["tips"])
 
     except Exception as e:
         print(f"Error generating coaching: {e}")
         # Fallback to template-based coaching
-        questions = [
-            f"Tell me about your experience with {request.role}.",
-            f"What interests you most about working in {request.role}?",
-            "Describe a challenging project you've worked on and how you overcame obstacles.",
-            "How do you stay updated with the latest trends in your field?",
-            "Where do you see yourself in 5 years?",
+        fallback_questions = [
+            QuestionItem(
+                q=f"Tell me about your experience with {request.role}.",
+                ideal_answer="Focus on specific projects, technologies, or experiences that demonstrate your passion and relevant skills.",
+            ),
+            QuestionItem(
+                q=f"What interests you most about working in {request.role}?",
+                ideal_answer="Show genuine enthusiasm and explain how this role aligns with your career goals.",
+            ),
+            QuestionItem(
+                q="Describe a challenging project you've worked on and how you overcame obstacles.",
+                ideal_answer="Use the STAR method: describe the Situation, Task, Action you took, and Result achieved.",
+            ),
+            QuestionItem(
+                q="How do you stay updated with the latest trends in your field?",
+                ideal_answer="Mention specific resources like blogs, courses, conferences, or communities you follow.",
+            ),
+            QuestionItem(
+                q="Where do you see yourself in 5 years?",
+                ideal_answer="Show long-term thinking while demonstrating how this role is a stepping stone.",
+            ),
         ]
 
         # Add company-specific question if provided
         if request.company:
-            questions.append(
-                f"What do you know about {request.company} and why do you want to work here?"
+            fallback_questions.append(
+                QuestionItem(
+                    q=f"What do you know about {request.company} and why do you want to work here?",
+                    ideal_answer="Research their products, mission, recent news, and company culture.",
+                )
             )
 
         # Generate tips based on role
@@ -433,8 +519,6 @@ async def get_coaching(request: CoachRequest) -> CoachResponse:
             f"Research the company thoroughly before your {request.role} interview.",
             "Prepare specific examples of your achievements using the STAR method.",
             "Practice explaining technical concepts in simple terms.",
-            "Prepare thoughtful questions to ask the interviewer about the role and company culture.",
-            "Dress professionally and arrive 5-10 minutes early for in-person interviews.",
         ]
 
         # Add role-specific tips
@@ -453,7 +537,7 @@ async def get_coaching(request: CoachRequest) -> CoachResponse:
                 ]
             )
 
-        return CoachResponse(questions=questions, tips=tips)
+        return CoachResponse(questions=fallback_questions[:5], tips=tips[:3])
 
 
 # Local Agent Endpoints
@@ -466,98 +550,30 @@ async def cv_analyzer(request: dict):
         request: {"text": "..."}
 
     Returns:
-        {"skills": [...]}
+        {"skills": [...], "highlights": [...], "profile_text": "..."}
     """
     text = request.get("text", "")
 
     if not text.strip():
-        return {"skills": []}
+        return {"skills": [], "highlights": [], "profile_text": ""}
 
     try:
-        # Use LLM to extract skills from text
-        skills = await extract_skills_from_text(text)
-        return {"skills": skills}
+        # Use CV parser for comprehensive analysis
+        result = await analyze_profile(text)
+        return {
+            "skills": result["skills"],
+            "highlights": result["highlights"],
+            "profile_text": result["profile_text"],
+        }
 
     except Exception as e:
         print(f"Error in CV analyzer: {e}")
-        # Fallback to keyword-based extraction
-        skill_keywords = [
-            "python",
-            "javascript",
-            "typescript",
-            "java",
-            "c++",
-            "c#",
-            "go",
-            "rust",
-            "react",
-            "vue",
-            "angular",
-            "node.js",
-            "express",
-            "django",
-            "flask",
-            "fastapi",
-            "sql",
-            "postgresql",
-            "mysql",
-            "mongodb",
-            "redis",
-            "elasticsearch",
-            "aws",
-            "azure",
-            "gcp",
-            "docker",
-            "kubernetes",
-            "terraform",
-            "git",
-            "linux",
-            "bash",
-            "jenkins",
-            "gitlab",
-            "machine learning",
-            "deep learning",
-            "tensorflow",
-            "pytorch",
-            "scikit-learn",
-            "pandas",
-            "numpy",
-            "matplotlib",
-            "seaborn",
-            "graphql",
-            "rest api",
-            "microservices",
-            "agile",
-            "scrum",
-            "devops",
-            "figma",
-            "photoshop",
-            "illustrator",
-            "sketch",
-            "data analysis",
-            "statistics",
-            "r",
-            "matlab",
-            "tableau",
-            "power bi",
-            "cybersecurity",
-            "penetration testing",
-            "blockchain",
-            "web3",
-            "solidity",
-        ]
-
-        # Extract skills from text
-        found_skills = []
-        text_lower = text.lower()
-
-        for skill in skill_keywords:
-            if skill.lower() in text_lower:
-                found_skills.append(skill.title())
-
-        # Remove duplicates and return
-        unique_skills = list(set(found_skills))
-        return {"skills": unique_skills}
+        # Fallback to basic extraction
+        return {
+            "skills": ["Python", "JavaScript", "Git"],
+            "highlights": [],
+            "profile_text": "Basic technical skills",
+        }
 
 
 @router.post("/local/job_scout")
