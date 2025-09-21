@@ -32,22 +32,25 @@ install-deps: install-web-deps install-api-deps
 # Install web app dependencies
 install-web-deps:
 	@echo "Installing web app dependencies..."
-	cd apps/web && npm install
+	cd apps/web && pnpm install
 
 # Install API dependencies
 install-api-deps:
 	@echo "Installing API dependencies..."
 	cd apps/api && pip install -r requirements.txt
 	cd packages/embeddings && pip install -e .
+	@echo "Installing pre-commit hooks..."
+	pip install pre-commit
+	pre-commit install
 
 # Development servers
 dev-web:
 	@echo "Starting Next.js development server..."
-	cd apps/web && npm run dev
+	cd apps/web && pnpm dev
 
 dev-api:
 	@echo "Starting FastAPI development server..."
-	cd apps/api && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+	cd apps/api && uvicorn main:app --reload --port 8000
 
 dev: 
 	@echo "Starting both development servers..."
@@ -62,37 +65,35 @@ dev:
 # Linting
 lint:
 	@echo "Running linting for web app..."
-	cd apps/web && npm run lint
+	cd apps/web && pnpm run lint
 	@echo "Running linting for API..."
-	cd apps/api && python -m black --check .
-	cd apps/api && python -m ruff check .
-	cd packages/embeddings && python -m black --check .
-	cd packages/embeddings && python -m ruff check .
+	cd apps/api && ruff check .
+	cd packages/embeddings && ruff check .
 
 # Formatting
 format:
 	@echo "Formatting web app code..."
-	cd apps/web && npm run format
+	cd apps/web && pnpm run format
 	@echo "Formatting API code..."
-	cd apps/api && python -m black .
-	cd apps/api && python -m ruff --fix .
-	cd packages/embeddings && python -m black .
-	cd packages/embeddings && python -m ruff --fix .
+	cd apps/api && black .
+	cd apps/api && ruff --fix .
+	cd packages/embeddings && black .
+	cd packages/embeddings && ruff --fix .
 
 # Testing
 test:
 	@echo "Running web app tests..."
-	cd apps/web && npm run test || echo "No tests configured for web app yet"
+	cd apps/web && pnpm test || echo "No tests configured for web app yet"
 	@echo "Running API tests..."
-	cd apps/api && python -m pytest tests/ || echo "No tests configured for API yet"
+	cd apps/api && pytest tests/ || echo "No tests configured for API yet"
 
 # Type checking
 type-check:
 	@echo "Running TypeScript type checking..."
-	cd apps/web && npm run type-check
+	cd apps/web && pnpm run type-check
 	@echo "Running Python type checking..."
-	cd apps/api && python -m mypy . || echo "MyPy not configured yet"
-	cd packages/embeddings && python -m mypy . || echo "MyPy not configured yet"
+	cd apps/api && mypy . || echo "MyPy not configured yet"
+	cd packages/embeddings && mypy . || echo "MyPy not configured yet"
 
 # Clean build artifacts
 clean:
@@ -106,7 +107,7 @@ clean:
 # Production build
 build: clean
 	@echo "Building web app for production..."
-	cd apps/web && npm run build
+	cd apps/web && pnpm run build
 
 # Docker commands (for future use)
 docker-build:
