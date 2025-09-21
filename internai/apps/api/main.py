@@ -9,9 +9,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app.routes import router
-from app.coral_client import CoralClient
 from app.agents_registry import ensure_agents_registered
+from app.coral_client import CoralClient
+from app.routes import router
 
 # Load environment variables
 load_dotenv()
@@ -64,16 +64,16 @@ app.include_router(router, prefix="/v1", tags=["api"])
 async def startup_event():
     """Initialize Coral client and register agents on startup."""
     global coral_client
-    
+
     try:
         # Initialize Coral client
         coral_client = CoralClient()
         print(f"Connected to Coral server: {coral_client.server_url}")
-        
+
         # Register all agents
         agent_ids = ensure_agents_registered(coral_client)
         print(f"Registered {len(agent_ids)} agents with Coral")
-        
+
     except ValueError as e:
         print(f"Warning: Coral client initialization failed: {e}")
         print("Continuing without Coral integration...")
@@ -115,7 +115,7 @@ async def api_info():
 async def list_agents():
     """
     List all registered agents.
-    
+
     Returns:
         List of agent metadata and status
     """
@@ -123,21 +123,17 @@ async def list_agents():
         return {
             "error": "Coral client not initialized",
             "agents": [],
-            "status": "disconnected"
+            "status": "disconnected",
         }
-    
+
     try:
         agents = coral_client.list_agents()
-        return {
-            "agents": agents,
-            "status": "connected",
-            "count": len(agents)
-        }
+        return {"agents": agents, "status": "connected", "count": len(agents)}
     except Exception as e:
         return {
             "error": f"Failed to list agents: {str(e)}",
             "agents": [],
-            "status": "error"
+            "status": "error",
         }
 
 
