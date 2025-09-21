@@ -2,6 +2,7 @@
 API routes for InternAI services.
 """
 
+# Import embeddings from the local package
 import sys
 from pathlib import Path
 
@@ -20,13 +21,23 @@ from .models import (
 )
 from .settings import get_settings
 
-# Add packages to path for imports
-packages_path = Path(__file__).parent.parent.parent.parent / "packages" / "embeddings"
-sys.path.insert(0, str(packages_path))
+# Add the embeddings package to the path
+embeddings_path = Path(__file__).parent.parent.parent.parent / "packages" / "embeddings"
+sys.path.insert(0, str(embeddings_path))
 
 try:
-    from embeddings import EmbeddingsClient, cosine_sim
-except ImportError as e:
+    # Import from the local embeddings package
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "embeddings", embeddings_path / "__init__.py"
+    )
+    embeddings_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(embeddings_module)
+
+    EmbeddingsClient = embeddings_module.EmbeddingsClient
+    cosine_sim = embeddings_module.cosine_sim
+except Exception as e:
     print(f"Warning: Could not import embeddings module: {e}")
     print("Embeddings functionality will be disabled. Install the embeddings package.")
     EmbeddingsClient = None
