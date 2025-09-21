@@ -1,10 +1,20 @@
-"""
-Embeddings package for InternAI
+import numpy as np
+from mistralai import Mistral
 
-Provides abstractions for text embeddings using various providers.
-"""
 
-from .client import EmbeddingsClient
+class EmbeddingsClient:
+    def __init__(self, api_key: str, model: str = "mistral-embed"):
+        self.client = Mistral(api_key=api_key)
+        self.model = model
 
-__version__ = "1.0.0"
-__all__ = ["EmbeddingsClient"]
+    def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        # Batch call; the SDK exposes an embeddings endpoint per docs.
+        resp = self.client.embeddings.create(model=self.model, inputs=texts)
+        # Unify to plain list of floats
+        return [e.embedding for e in resp.data]
+
+
+# Also add a cosine_similarity helper:
+def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
+    denom = (np.linalg.norm(a) * np.linalg.norm(b)) or 1e-12
+    return float(np.dot(a, b) / denom)
